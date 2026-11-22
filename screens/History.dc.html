@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Monthly history</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3B5BDB}a:hover{color:#2F4AB8}
+</style>
+</helmet>
+<div style="position: relative; filter: {{themeFilter}}; width: 390px; height: 844px; display: flex; flex-direction: column; background: #F4F5F7; font-family: Inter, system-ui, sans-serif; color: #111827; overflow: hidden">
+  <div style="flex: 1; overflow-y: auto; padding: 56px 20px 24px; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 13px; font-weight: 500; color: #5F6672">Past months’ budgets</span>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.5px">History</h1>
+      </div>
+      <div style="position: relative">
+        <button type="button" aria-label="Download statement" aria-haspopup="menu" aria-expanded="{{dlOpen}}" onClick="{{toggleDl}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #D5D8DE; background: #FFFFFF; color: #111827; display: flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="M7 10l5 5 5-5"></path><path d="M5 20h14"></path></svg>
+        </button>
+        <sc-if value="{{dlOpen}}" hint-placeholder-val="{{ false }}">
+          <div role="menu" aria-label="Download as" style="position: absolute; top: 52px; right: 0; z-index: 3; width: 200px; background: #FFFFFF; border: 1px solid #E3E5E9; border-radius: 14px; box-shadow: 0 10px 24px rgba(17,24,39,0.14); padding: 6px; display: flex; flex-direction: column">
+            <span style="padding: 6px 10px 4px; font-size: 12px; font-weight: 600; color: #5F6672">{{dlTitle}}</span>
+            <sc-for list="{{dlOptions}}" as="dl" hint-placeholder-count="2">
+              <button type="button" role="menuitem" onClick="{{dl.pick}}" style="min-height: 44px; padding: 0 10px; border: none; border-radius: 10px; background: transparent; display: flex; align-items: center; gap: 10px; font-family: inherit; font-size: 14px; font-weight: 500; color: #111827; text-align: left; cursor: pointer">
+                <span aria-hidden="true" style="{{dl.badgeStyle}}">{{dl.badge}}</span>
+                {{dl.label}}
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="{{toastStyle}}">
+        <span style="display: flex; align-items: center; gap: 8px">
+          <sc-if value="{{toastDone}}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></sc-if>
+          {{toast}}
+        </span>
+        <button type="button" aria-label="Dismiss" onClick="{{clearToast}}" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: rgba(255,255,255,0.12); color: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </div>
+    </sc-if>
+
+    <section aria-labelledby="trend-h" style="background: #FFFFFF; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 id="trend-h" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Choose a month</h2>
+        <div style="display: flex; gap: 8px">
+          <span style="position: relative; display: inline-flex">
+          <select aria-label="Year" value="{{selYear}}" onChange="{{setYear}}" style="appearance: none; -webkit-appearance: none; height: 38px; padding: 0 34px 0 12px; border: 1px solid #D5D8DE; border-radius: 10px; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; color: #111827; cursor: pointer">
+            <sc-for list="{{yearOptions}}" as="yo" hint-placeholder-count="3">
+              <option value="{{yo.value}}">{{yo.label}}</option>
+            </sc-for>
+          </select>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5F6672" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none"><path d="M6 9l6 6 6-6"></path></svg>
+          </span>
+          <span style="position: relative; display: inline-flex">
+          <select aria-label="Month" value="{{selMonth}}" onChange="{{setMonth}}" style="appearance: none; -webkit-appearance: none; height: 38px; padding: 0 34px 0 12px; border: 1px solid #D5D8DE; border-radius: 10px; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; color: #111827; cursor: pointer">
+            <sc-for list="{{monthOptions}}" as="mo" hint-placeholder-count="11">
+              <option value="{{mo.value}}">{{mo.label}}</option>
+            </sc-for>
+          </select>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5F6672" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none"><path d="M6 9l6 6 6-6"></path></svg>
+          </span>
+        </div>
+        <span style="font-size: 12px; color: #5F6672">6-mo avg {{cur}}{{avg}}</span>
+      </div>
+      <div role="group" aria-label="Pick a month" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; align-items: end; height: 150px">
+        <sc-for list="{{bars}}" as="b" hint-placeholder-count="6">
+          <button type="button" aria-pressed="{{b.on}}" aria-label="{{b.aria}}" onClick="{{b.pick}}" style="height: 150px; border: none; background: none; padding: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; font-family: inherit; cursor: pointer">
+            <span style="font-size: 10px; font-weight: 600; color: #5F6672">{{b.short}}</span>
+            <span style="{{b.barStyle}}"></span>
+            <span style="{{b.labelStyle}}">{{b.label}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-label="Left for the month" style="background: {{accent}}; color: #FFFFFF; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 13px; color: #E3E8FC">{{m.name}} · left for the month</span>
+          <sc-if value="{{m.hasData}}" hint-placeholder-val="{{ true }}">
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; letter-spacing: -1px">{{m.leftSigned}}</span>
+          </sc-if>
+          <sc-if value="{{m.noData}}" hint-placeholder-val="{{ false }}">
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700">No data uploaded</span>
+            <span style="font-size: 12px; color: #E3E8FC">Nothing was entered for this month, so every amount shows {{cur}}0.</span>
+          </sc-if>
+          <sc-if value="{{m.hasSaveMe}}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 12px; color: #E3E8FC">Balance {{cur}}{{m.balanceF}} − Save me salary {{cur}}{{m.saveMeF}}</span>
+          </sc-if>
+        </div>
+        <span style="{{m.deltaStyle}}">{{m.delta}}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.14); border-radius: 14px; padding: 12px 14px">
+        <span style="font-size: 13px">Average per day</span>
+        <span style="font-size: 16px; font-weight: 700">{{cur}}{{m.perDayF}}</span>
+      </div>
+    </section>
+
+    <section aria-label="Savings in bank" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+      <span style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 14px; font-weight: 700">Savings in bank</span>
+        <span style="font-size: 12px; color: #5F6672">As entered that month</span>
+      </span>
+      <span style="font-size: 16px; font-weight: 700">{{cur}}{{m.savingsF}}</span>
+    </section>
+
+    <section aria-label="Salary credited" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 14px; font-weight: 700">Salary credited</span>
+      <span style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700">{{cur}}{{m.salaryF}}</span>
+      <span style="font-size: 12px; color: #5F6672">Credited {{m.creditedOn}} · Axis Salary •• 7710</span>
+    </section>
+
+    <section aria-labelledby="regular-h" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 6px">
+        <h2 id="regular-h" style="margin: 0; font-size: 14px; font-weight: 700">Regular expenses</h2>
+        <span style="font-size: 14px; font-weight: 700">− {{cur}}{{m.regularF}}</span>
+      </div>
+      <sc-for list="{{m.expenses}}" as="e" hint-placeholder-count="4">
+        <div style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; border-top: 1px solid #EDEFF2; font-size: 14px">
+          <span style="color: #3D434D">{{e.label}}</span>
+          <span style="font-weight: 600">{{cur}}{{e.amountF}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section aria-labelledby="calc-h" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <h2 id="calc-h" style="margin: 0; font-size: 14px; font-weight: 700">How it added up</h2>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Salary</span><span>{{cur}}{{m.salaryF}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Regular expenses</span><span>− {{cur}}{{m.regularF}}</span></div>
+      <div style="height: 1px; background: #E3E5E9"></div>
+      <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700"><span>Balance</span><span>{{cur}}{{m.balanceF}}</span></div>
+    </section>
+
+    <section aria-labelledby="bills-h" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <h2 id="bills-h" style="margin: 0; font-size: 14px; font-weight: 700">Credit card bills</h2>
+      <sc-for list="{{m.bills}}" as="bl" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; border-top: 1px solid #EDEFF2">
+          <span style="display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: #3D434D">
+            <span>{{bl.name}}</span>
+            <span style="font-size: 12px; color: #5F6672">•••• {{bl.last4}} · due {{bl.due}}</span>
+          </span>
+          <span style="font-size: 15px; font-weight: 600">{{cur}}{{bl.amountF}}</span>
+        </div>
+      </sc-for>
+      <div style="height: 1px; background: #E3E5E9"></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Credit card bills</span><span>{{cur}}{{m.billsF}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Other expenses you owed</span><span>+ {{cur}}{{m.owedOthersF}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600"><span>Total to pay</span><span>{{cur}}{{m.toPayF}}</span></div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 14px; color: #3D434D">Money people owed you</span>
+        <sc-for list="{{m.owers}}" as="ow" hint-placeholder-count="2">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-left: 12px; font-size: 14px">
+            <span style="display: flex; flex-direction: column; gap: 1px">
+              <span style="color: #111827">{{ow.name}}</span>
+              <span style="font-size: 12px; color: #5F6672">{{ow.why}}</span>
+            </span>
+            <span style="color: #1E5E2B; flex-shrink: 0">− {{cur}}{{ow.amountF}}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{m.noOwers}}" hint-placeholder-val="{{ false }}">
+          <span style="padding-left: 12px; font-size: 13px; color: #5F6672">Nobody owed you this month · {{cur}}0</span>
+        </sc-if>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Savings in bank</span><span style="color: #1E5E2B">− {{cur}}{{m.savingsF}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Save me salary</span><span style="color: #1E5E2B">− {{cur}}{{m.saveMeF}}</span></div>
+      <div style="height: 1px; background: #E3E5E9"></div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 700"><span>{{m.billBalanceLabel}}</span><span style="color: {{m.billBalanceColor}}">{{cur}}{{m.billBalanceF}}</span></div>
+    </section>
+  </div>
+
+  <nav aria-label="Main" style="height: 82px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E3E5E9; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 14px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+      Cards
+    </a>
+    <a href="Split.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.8.8 3 2.6 3.5 5.2"></path></svg>
+      Bills
+    </a>
+    <a href="Budget.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 7l12-3v3"></path><circle cx="16.5" cy="14" r="1.2"></circle></svg>
+      Budget
+    </a>
+    <a href="History.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: {{accent}}; font-weight: 600">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path><path d="M12 8v4l3 2"></path></svg>
+      History
+    </a>
+    <a href="Profile.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"></path></svg>
+      Profile
+    </a>
+  </nav>
+  <sc-if value="{{lock.show}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-modal="true" aria-labelledby="lock-title" style="position: absolute; inset: 0; z-index: 200; background: {{lock.bg}}; color: {{lock.text}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 36px 28px; box-sizing: border-box; font-family: Inter, system-ui, sans-serif">
+      <div aria-hidden="true" style="width: 60px; height: 60px; border-radius: 30px; background: {{lock.accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+        <h2 id="lock-title" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700">{{lock.title}}</h2>
+        <p role="status" style="margin: 0; font-size: 14px; color: {{lock.hintColor}}">{{lock.hint}}</p>
+      </div>
+      <div aria-hidden="true" style="display: flex; gap: 16px">
+        <sc-for list="{{lock.dots}}" as="pd" hint-placeholder-count="4"><span style="{{pd.style}}"></span></sc-for>
+      </div>
+      <sc-if value="{{lock.forgotOpen}}" hint-placeholder-val="{{ false }}">
+        <div style="width: 100%; background: {{lock.surface}}; border: 1px solid {{lock.border}}; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box">
+          <span style="font-size: 15px; font-weight: 700">Forgot your PIN?</span>
+          <span style="font-size: 13px; color: {{lock.muted}}">For your privacy the PIN can’t be recovered. You can erase all data on this device and then restore your latest backup from Profile.</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <button type="button" onClick="{{lock.closeForgot}}" style="min-height: 46px; border: 1px solid {{lock.border}}; border-radius: 12px; background: transparent; color: {{lock.text}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+            <button type="button" onClick="{{lock.eraseAll}}" style="min-height: 46px; border: none; border-radius: 12px; background: {{lock.danger}}; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Erase data</button>
+          </div>
+        </div>
+      </sc-if>
+      <div role="group" aria-label="PIN keypad" style="width: 100%; max-width: 260px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px">
+        <sc-for list="{{lock.keys}}" as="pk" hint-placeholder-count="12">
+          <button type="button" aria-label="{{pk.aria}}" aria-hidden="{{pk.hidden}}" onClick="{{pk.press}}" style="{{pk.style}}">{{pk.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{lock.isUnlock}}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{lock.openForgot}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.accent}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Forgot PIN?</button>
+      </sc-if>
+      <sc-if value="{{lock.canCancel}}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{lock.cancel}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.muted}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#3B5BDB","options":["#3B5BDB","#0B7285","#6741D9","#111827"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  _loadPrefs() {
+    // theme, accent and currency chosen on the Profile screen
+    try {
+      var p = JSON.parse(window.localStorage.getItem('expenseTracker.prefs') || 'null') || {};
+      try { p.systemDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); } catch (e2) {}
+      this.setState({ prefs: p });
+    } catch (e) {}
+  }
+  componentDidMount() {
+    this.lockMount();
+    var selfP = this;
+    var clockSelf = this;
+    this._clock = setInterval(function () { clockSelf.setState({ now: Date.now() }); }, 30000);
+    this._loadPrefs();
+    this._onPrefs = function (ev) { if (!ev || ev.key === 'expenseTracker.prefs') selfP._loadPrefs(); };
+    try { window.addEventListener('storage', this._onPrefs); } catch (e) {}
+
+    var self = this;
+    var num = function (v) { var n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; };
+    var load = function () {
+      var nov = null;
+      try {
+        var bud = JSON.parse(window.localStorage.getItem('expenseTracker.budget') || 'null');
+        var sh = JSON.parse(window.localStorage.getItem('expenseTracker.shared') || 'null') || {};
+        var cards = JSON.parse(window.localStorage.getItem('expenseTracker.cards') || 'null');
+        if (bud && typeof bud === 'object') {
+          var lines = (bud.items || []).map(function (it) { return [it.label || 'Expense', num(it.value)]; });
+          var credit = Array.isArray(cards) ? cards.filter(function (c) { return c.type === 'Credit'; })
+            : [{ id: 'hdfc', name: 'HDFC Regalia', last4: '4521', due: 5 }, { id: 'icici', name: 'ICICI Amazon Pay', last4: '8834', due: 12 }];
+          var billList = credit.map(function (c) { return [c.name, c.last4, c.due || 0, num((bud.bills || {})[c.id])]; });
+          var owedOthers = 0, byP = {}, order = [];
+          (sh.oweItems || []).forEach(function (w) { owedOthers += w.amount; });
+          (sh.groups || []).forEach(function (g) { Object.keys(g.bal || {}).forEach(function (m) { if (g.bal[m] < 0) owedOthers += -g.bal[m]; }); });
+          var add = function (name, why, amt) {
+            if (amt <= 0) return;
+            var k = String(name).split(' ')[0].toLowerCase();
+            if (!byP[k]) { byP[k] = { name: name, parts: [], amount: 0 }; order.push(k); }
+            byP[k].parts.push(why); byP[k].amount += amt;
+          };
+          (sh.lentItems || []).forEach(function (l) { add(l.who, l.what, l.amount - l.paid); });
+          (sh.groups || []).forEach(function (g) { Object.keys(g.bal || {}).forEach(function (m) { if (g.bal[m] > 0) add(m, g.name, g.bal[m]); }); });
+          var any = num(bud.salary) || num(bud.savings) || lines.some(function (l) { return l[1]; }) || billList.some(function (b) { return b[3]; });
+          if (any) nov = { salary: num(bud.salary), savings: num(bud.savings), saveMe: num(bud.saveMe), lines: lines, billList: billList, owedOthers: owedOthers,
+            owers: order.map(function (k) { return { name: byP[k].name, why: byP[k].parts.join(' · '), amount: byP[k].amount }; }) };
+        }
+      } catch (e) {}
+      self.setState({ nov: nov });
+    };
+    load();
+    this._onStorage = function (ev) { if (!ev || /^expenseTracker\./.test(ev.key || '')) load(); };
+    try { window.addEventListener('storage', this._onStorage); } catch (e) {}
+  }
+  // ---- App lock (4-digit PIN). Turned on/off in Profile › App lock. Stored only on this device as a salted hash.
+  lockHash(pin, salt) {
+    var h = 2166136261, str = salt + ':' + pin;
+    for (var r = 0; r < 500; r++) { for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } str = h.toString(16) + str.slice(0, 12); }
+    return h.toString(16);
+  }
+  lockRead() { try { return JSON.parse(window.localStorage.getItem('expenseTracker.lock') || 'null'); } catch (e) { return null; } }
+  lockInit() {
+    var lk = this.lockRead(), unlocked = false;
+    try { unlocked = window.sessionStorage.getItem('expenseTracker.unlocked') === '1'; } catch (e) {}
+    var on = !!(lk && lk.on && lk.h);
+    var p = { lockOn: on };
+    if (!on) { p.locked = false; if ((this.state || {}).pinMode === 'unlock') p.pinMode = null; }
+    else if (!unlocked) { p.locked = true; p.pinMode = 'unlock'; p.pinEntry = ''; p.pinErr = ''; }
+    else if ((this.state || {}).pinMode === 'unlock') { p.locked = false; p.pinMode = null; }
+    this.setState(p);
+  }
+  lockMount() {
+    var self = this;
+    this.lockInit();
+    this._onLock = function (ev) { if (!ev || ev.key === 'expenseTracker.lock' || ev.key === 'expenseTracker.unlockPing' || ev.key === 'expenseTracker.unlocked') self.lockInit(); };
+    // lock again when the app goes to the background
+    this._onHide = function () {
+      if (document.visibilityState === 'hidden' && (self.state || {}).lockOn) {
+        try { window.sessionStorage.removeItem('expenseTracker.unlocked'); } catch (e) {}
+        self.setState({ locked: true, pinMode: 'unlock', pinEntry: '', pinErr: '' });
+      }
+    };
+    try { window.addEventListener('storage', this._onLock); document.addEventListener('visibilitychange', this._onHide); } catch (e) {}
+  }
+  lockUnmount() { try { window.removeEventListener('storage', this._onLock); document.removeEventListener('visibilitychange', this._onHide); } catch (e) {} }
+  markUnlocked() {
+    try { window.sessionStorage.setItem('expenseTracker.unlocked', '1'); window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now())); } catch (e) {}
+  }
+  pinDone(pin) {
+    var self = this, mode = (this.state || {}).pinMode, lk = this.lockRead();
+    var ok = function () { return lk && lk.h === self.lockHash(pin, lk.s); };
+    if (mode === 'unlock') {
+      if (ok()) { this.markUnlocked(); this.setState({ locked: false, pinMode: null, pinEntry: '', pinErr: '' }); }
+      else this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' });
+    } else if (mode === 'set') {
+      this.setState({ pinMode: 'confirm', pinFirst: pin, pinEntry: '', pinErr: '' });
+    } else if (mode === 'confirm') {
+      if (pin !== (this.state || {}).pinFirst) { this.setState({ pinMode: 'set', pinFirst: '', pinEntry: '', pinErr: 'PINs didn’t match. Start again.' }); return; }
+      var salt = Math.random().toString(36).slice(2, 10);
+      try { window.localStorage.setItem('expenseTracker.lock', JSON.stringify({ on: true, s: salt, h: this.lockHash(pin, salt) })); } catch (e) {}
+      this.markUnlocked();
+      this.setState({ lockOn: true, pinMode: null, pinFirst: '', pinEntry: '', pinErr: '', lockToast: 'App lock is on' });
+    } else if (mode === 'off' || mode === 'change') {
+      if (!ok()) { this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' }); return; }
+      if (mode === 'change') { this.setState({ pinMode: 'set', pinEntry: '', pinErr: '' }); return; }
+      try { window.localStorage.removeItem('expenseTracker.lock'); } catch (e) {}
+      this.setState({ lockOn: false, pinMode: null, pinEntry: '', pinErr: '', lockToast: 'App lock is off' });
+    }
+  }
+  lockVals(accent, c) {
+    var self = this, mode = (this.state || {}).pinMode, entry = (this.state || {}).pinEntry || '';
+    var titles = { unlock: 'Enter your PIN', set: 'Create a 4-digit PIN', confirm: 'Re-enter your PIN', off: 'Enter PIN to turn off app lock', change: 'Enter your current PIN' };
+    var hints = { unlock: 'Your expense data is locked', set: 'You’ll need it every time you open the app', confirm: 'Type the same PIN again', off: 'App lock will be turned off', change: 'Then choose a new PIN' };
+    var press = function (k) {
+      return function () {
+        var e = (self.state || {}).pinEntry || '';
+        if (k === 'del') { self.setState({ pinEntry: e.slice(0, -1), pinErr: '' }); return; }
+        if (e.length >= 4) return;
+        e += k; self.setState({ pinEntry: e, pinErr: '' });
+        if (e.length === 4) setTimeout(function () { self.pinDone(e); }, 120);
+      };
+    };
+    var keyStyle = 'height: 64px; border-radius: 32px; border: none; background: ' + c.key + '; color: ' + c.text + '; font-family: inherit; font-size: 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center';
+    var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map(function (k) {
+      return { label: k === 'del' ? '⌫' : k, aria: k === 'del' ? 'Delete digit' : (k || 'blank'), press: k ? press(k) : null, hidden: !k,
+        style: k ? (k === 'del' ? keyStyle.replace('background: ' + c.key, 'background: transparent') : keyStyle) : keyStyle + '; visibility: hidden' };
+    });
+    return {
+      show: !!mode && (mode !== 'unlock' || !!(this.state || {}).locked),
+      title: titles[mode] || '', hint: (this.state || {}).pinErr || hints[mode] || '',
+      hintColor: (this.state || {}).pinErr ? c.danger : c.muted,
+      dots: [0, 1, 2, 3].map(function (i) { var f = i < entry.length; return { style: 'width: 14px; height: 14px; border-radius: 7px; border: 2px solid ' + (f ? accent : c.muted) + '; background: ' + (f ? accent : 'transparent') }; }),
+      keys: keys,
+      canCancel: mode !== 'unlock',
+      isUnlock: mode === 'unlock' && !(this.state || {}).forgotOpen,
+      cancel: function () { self.setState({ pinMode: null, pinEntry: '', pinErr: '', pinFirst: '' }); },
+      forgotOpen: !!(this.state || {}).forgotOpen,
+      openForgot: function () { self.setState({ forgotOpen: true }); },
+      closeForgot: function () { self.setState({ forgotOpen: false }); },
+      eraseAll: function () {
+        // the only way past a forgotten PIN: wipe this device's data, then restore a backup from Profile
+        try {
+          var ks = []; for (var i = 0; i < window.localStorage.length; i++) { var k = window.localStorage.key(i); if (k && k.indexOf('expenseTracker.') === 0) ks.push(k); }
+          ks.forEach(function (k) { window.localStorage.removeItem(k); });
+          window.sessionStorage.removeItem('expenseTracker.unlocked');
+          window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now()));
+        } catch (e) {}
+        try { window.location.reload(); } catch (e) {}
+      },
+      bg: c.bg, text: c.text, muted: c.muted, accent: accent, danger: c.danger, surface: c.surface, border: c.border
+    };
+  }
+  saveFile(name, content, mime) {
+    // installed iPhone app: open the share sheet (Save to Files, Calendar, Mail…); browser: normal download
+    var standalone = false;
+    try { standalone = window.navigator.standalone === true || !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches); } catch (e) {}
+    if (standalone && navigator.canShare && typeof File !== 'undefined') {
+      try {
+        var file = new File([content], name, { type: mime });
+        if (navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: name }).catch(function () {}); return true; }
+      } catch (e) {}
+    }
+    try {
+      var url = URL.createObjectURL(content instanceof Blob ? content : new Blob([content], { type: mime }));
+      var a = document.createElement('a'); a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch (e) { return false; }
+  }
+  makePdf(lines) {
+    // a small one-or-more page PDF built by hand so it works without any library
+    var esc = function (t) { return String(t).replace(/[^\x20-\x7E]/g, '').replace(/([\\()])/g, '\\$1'); };
+    var per = 46, pages = [];
+    for (var i = 0; i < Math.max(lines.length, 1); i += per) pages.push(lines.slice(i, i + per));
+    var objs = ['<< /Type /Catalog /Pages 2 0 R >>', '', '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
+    var kids = [];
+    pages.forEach(function (pg) {
+      var body = 'BT /F1 10 Tf 14 TL 40 800 Td ' + pg.map(function (l, j) { return (j ? 'T* ' : '') + '(' + esc(l) + ') Tj'; }).join(' ') + ' ET';
+      objs.push('<< /Length ' + body.length + ' >>\nstream\n' + body + '\nendstream');
+      var cIdx = objs.length;
+      objs.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ' + cIdx + ' 0 R >>');
+      kids.push(objs.length + ' 0 R');
+    });
+    objs[1] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + kids.length + ' >>';
+    var out = '%PDF-1.4\n', offs = [];
+    objs.forEach(function (o, k) { offs.push(out.length); out += (k + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+    var x = out.length;
+    out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n' + offs.map(function (o) { return ('000000000' + o).slice(-10) + ' 00000 n \n'; }).join('');
+    out += 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + x + '\n%%EOF';
+    return out;
+  }  downloadMonth(kind, name, lines, code) {
+    var file = 'statement-' + name.toLowerCase().replace(/\s+/g, '-') + '.' + kind.toLowerCase();
+    if (kind === 'PDF') { this.saveFile(file, this.makePdf(lines), 'application/pdf'); return; }
+    // PNG: draw the statement on a canvas
+    try {
+      var W = 1080, lh = 46, H = 140 + lines.length * lh + 60;
+      var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      var g = cv.getContext('2d'); if (!g) throw new Error('no canvas');
+      g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#111827'; g.font = '700 44px Inter, system-ui, sans-serif'; g.fillText(lines[0], 60, 96);
+      g.font = '400 30px Inter, system-ui, sans-serif';
+      for (var i = 1; i < lines.length; i++) {
+        var ln = lines[i], y = 140 + i * lh, cut = ln.lastIndexOf('  ');
+        if (/^[A-Z][a-z].*:$/.test(ln) || ln === ln.toUpperCase() && ln.trim()) { g.font = '700 30px Inter, system-ui, sans-serif'; g.fillStyle = '#111827'; g.fillText(ln, 60, y); g.font = '400 30px Inter, system-ui, sans-serif'; continue; }
+        g.fillStyle = '#3D434D';
+        if (cut > 0) { g.fillText(ln.slice(0, cut).trim(), 60, y); g.textAlign = 'right'; g.fillStyle = '#111827'; g.fillText(ln.slice(cut).trim(), W - 60, y); g.textAlign = 'left'; }
+        else g.fillText(ln, 60, y);
+      }
+      var self = this;
+      cv.toBlob(function (b) { if (b) self.saveFile(file, b, 'image/png'); }, 'image/png');
+    } catch (e) { this.saveFile(file.replace(/png$/, 'pdf'), this.makePdf(lines), 'application/pdf'); }
+  }
+  componentWillUnmount() {
+    this.lockUnmount();
+    clearInterval(this._clock); clearTimeout(this._dlTimer); try { window.removeEventListener('storage', this._onStorage); } catch (e) {} }
+  renderVals() {
+    var self = this;
+    // device date & time (re-read every 30 seconds so the app follows the phone's clock, time zone and month changes)
+    var NOW = new Date(this.state.now || Date.now());
+    var MSH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var MLONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var nextDue = function (d) { var y = NOW.getFullYear(), m = NOW.getMonth(); if (NOW.getDate() > d) { m++; if (m > 11) { m = 0; y++; } } return d + ' ' + MSH[m]; };
+    var ddmmyy = function (dt) { return ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + '/' + String(dt.getFullYear()).slice(-2); };
+    var accent = this.props.accent ?? '#3B5BDB';
+    var P = this.state.prefs || {};
+    if (P.accent) accent = P.accent;      // accent colour chosen in Profile
+    var CUR = { INR: ['₹', 'en-IN'], USD: ['$', 'en-US'], EUR: ['€', 'en-IE'], GBP: ['£', 'en-GB'], AED: ['AED ', 'en-US'], SGD: ['S$', 'en-SG'] }[P.currency || 'INR'] || ['₹', 'en-IN'];
+    var C = CUR[0];                        // currency symbol chosen in Profile
+    var darkMode = P.theme === 'Dark' || (P.theme === 'System' && !!P.systemDark);
+    var fmt = function (n) { return Number(n || 0).toLocaleString(CUR[1], { maximumFractionDigits: 2 }); };
+    var short = function (n) { return n ? '' + C + '' + (n / 1000).toFixed(1) + 'k' : '' + C + '0'; };
+    // No sample figures: a month shows Rs 0 / "No data uploaded" until its data is added.
+    // The current month fills in from what you save on the Budget screen (and the Bills screen).
+    // Pick a year and month; the chart shows the 6 months up to it
+    var SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var NOW_Y = NOW.getFullYear(), NOW_M = NOW.getMonth();   // the device's current month
+    var selYear = this.state.selYear || NOW_Y;
+    var selMonth = this.state.selMonth == null ? NOW_M : this.state.selMonth;
+    if (selYear === NOW_Y && selMonth > NOW_M) selMonth = NOW_M;
+    var months = [];
+    for (var k = 5; k >= 0; k--) {
+      var mi = selMonth - k, yi = selYear;
+      while (mi < 0) { mi += 12; yi -= 1; }
+      var isNow = yi === NOW_Y && mi === NOW_M;
+      var base = { key: SHORT[mi], y: yi, mi: mi, name: LONG[mi] + ' ' + yi + (isNow ? ' (so far)' : ''), days: new Date(yi, mi + 1, 0).getDate() };
+      months.push(Object.assign(base, isNow ? (this.state.nov || { noData: true }) : { noData: true }));
+    }
+    var defaultLines = [['Rent', 0], ['Loan / EMI', 0], ['Groceries', 0], ['Savings / SIP', 0]];
+    var defaultBills = [['HDFC Regalia', '4521', 5, 0], ['ICICI Amazon Pay', '8834', 12, 0]];
+    months = months.map(function (m) {
+      return m.noData ? Object.assign({ salary: 0, savings: 0, saveMe: 0, lines: defaultLines, billList: defaultBills, owedOthers: 0, owers: [] }, m) : m;
+    });
+    var calc = function (m) {
+      var regular = 0, billsTotal = 0, owed = 0;
+      m.lines.forEach(function (l) { regular += l[1]; });
+      m.billList.forEach(function (b) { billsTotal += b[3]; });
+      m.owers.forEach(function (o) { owed += o.amount; });
+      var balance = m.salary - regular;
+      var left = balance - m.saveMe;                       // same as Budget: Balance − Save me salary
+      var toPay = billsTotal + m.owedOthers;
+      var billBalance = toPay - owed - m.savings - m.saveMe;
+      return { regular: regular, balance: balance, left: left, billsTotal: billsTotal, toPay: toPay, billBalance: billBalance };
+    };
+    var pickKey = SHORT[selMonth] + selYear;
+    var max = 0, sum = 0;
+    var withData = 0;
+    months.forEach(function (m) { var c = calc(m); if (c.left > max) max = c.left; if (!m.noData) { sum += c.left; withData++; } });
+    if (max <= 0) max = 1;
+    var idx = 0;
+    months.forEach(function (m, i) { if (m.key + m.y === pickKey) idx = i; });
+    var cur = months[idx], c = calc(cur);
+    var prev = idx > 0 ? months[idx - 1] : null, pc = prev ? calc(prev) : null;
+    var delta = (pc && pc.left) ? Math.round((c.left - pc.left) / pc.left * 100) : 0;
+    var up = delta >= 0;
+    return {
+      lock: this.lockVals(accent, { bg: '#F4F5F7', text: '#111827', muted: '#5F6672', key: '#FFFFFF', danger: '#B42318', surface: '#FFFFFF', border: '#D5D8DE' }),
+      cur: C,
+      themeFilter: darkMode ? 'invert(0.92) hue-rotate(180deg)' : 'none',
+      accent: accent,
+      selYear: String(selYear),
+      selMonth: String(selMonth),
+      yearOptions: [NOW_Y - 2, NOW_Y - 1, NOW_Y].map(function (y) { return { value: String(y), label: String(y) }; }),
+      monthOptions: LONG.map(function (n, i) { return { value: String(i), label: n }; }).filter(function (o) { return selYear < NOW_Y || +o.value <= NOW_M; }),
+      setYear: function (ev) { var y = +ev.target.value; self.setState({ selYear: y, selMonth: (y === NOW_Y && (self.state.selMonth == null ? NOW_M : self.state.selMonth) > NOW_M) ? NOW_M : self.state.selMonth }); },
+      setMonth: function (ev) { self.setState({ selMonth: +ev.target.value }); },
+      // Download menu: choose PDF or PNG for the month on screen
+      dlOpen: !!this.state.dlOpen,
+      toggleDl: function () { self.setState({ dlOpen: !self.state.dlOpen }); },
+      dlTitle: 'Download ' + cur.name.replace(' (so far)', '') + ' as',
+      dlOptions: [['PDF', 'PDF document', '#FFF0F0', '#B42318'], ['PNG', 'PNG image', '#E7EBFB', '#2F4AB8']].map(function (o) {
+        return {
+          label: o[1], badge: o[0],
+          badgeStyle: 'width: 36px; height: 24px; border-radius: 6px; background: ' + o[2] + '; color: ' + o[3] + '; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center',
+          pick: function () {
+            var nm = cur.name.replace(' (so far)', '');
+            self.setState({ dlOpen: false, toastDone: false, toast: 'Downloading ' + nm + ' statement as ' + o[0] + '…' });
+            // build the statement (works with zero / no data too)
+            var code = P.currency || 'INR', a = function (v) { return code + ' ' + Number(v || 0).toFixed(2); };
+            var L = ['Statement - ' + nm, cur.noData ? 'No data uploaded for this month' : 'Generated ' + ddmmyy(new Date()), '', 'SALARY & EXPENSES', 'Salary credited  ' + a(cur.salary)];
+            cur.lines.forEach(function (l) { L.push(l[0] + '  ' + a(l[1])); });
+            L.push('Regular expenses  ' + a(c.regular), 'Balance  ' + a(c.balance), 'Save me salary  ' + a(cur.saveMe), 'Left for the month  ' + a(c.left), '', 'CREDIT CARD BILLS');
+            cur.billList.forEach(function (b) { L.push(b[0] + ' ** ' + b[1] + '  ' + a(b[3])); });
+            L.push('Other expenses you owe  ' + a(cur.owedOthers), 'Total to pay  ' + a(c.toPay), '', 'MONEY PEOPLE OWE YOU');
+            if (cur.owers.length) cur.owers.forEach(function (w) { L.push(w.name + '  ' + a(w.amount)); }); else L.push('Nobody owed you  ' + a(0));
+            L.push('Savings in bank  ' + a(cur.savings), (c.billBalance > 0 ? 'Balance still to pay  ' : 'Balance left over  ') + a(Math.abs(c.billBalance)));
+            self.downloadMonth(o[0], nm, L, code);
+            clearTimeout(self._dlTimer);
+            // after a moment, confirm the download
+            self._dlTimer = setTimeout(function () { self.setState({ toastDone: true, toast: 'Download successful · ' + nm + ' statement (' + o[0] + ')' }); }, 1200);
+          }
+        };
+      }),
+      hasToast: !!this.state.toast,
+      toast: this.state.toast || '',
+      clearToast: function () { clearTimeout(self._dlTimer); self.setState({ toast: '', toastDone: false }); },
+      toastDone: !!this.state.toastDone,
+      toastStyle: 'border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: #FFFFFF; background: ' + (this.state.toastDone ? '#1E7A3C' : '#111827'),
+      avg: fmt(withData ? sum / withData : 0),
+      bars: months.map(function (m) {
+        var on = m.key + m.y === pickKey, l = calc(m).left;
+        return {
+          label: m.key, short: short(l), on: on,
+          aria: m.name + (m.noData ? ', no data uploaded' : ', ' + C + '' + fmt(l) + ' left for the month'),
+          pick: function () { self.setState({ selYear: m.y, selMonth: m.mi }); },
+          barStyle: 'width: 100%; max-width: 32px; height: ' + Math.max(0, Math.round(l / max * 96)) + 'px; border-radius: 8px; background: ' + (on ? accent : '#D5DAE8'),
+          labelStyle: 'font-size: 12px; font-weight: ' + (on ? '700' : '500') + '; color: ' + (on ? '#111827' : '#5F6672')
+        };
+      }),
+      m: {
+        name: cur.name,
+        leftSigned: (c.left < 0 ? '−' + C + '' : '' + C + '') + fmt(Math.abs(c.left)),
+        hasSaveMe: cur.saveMe > 0,
+        balanceF: fmt(c.balance), saveMeF: fmt(cur.saveMe),
+        perDayF: fmt(Math.max(0, c.left) / cur.days),
+        noData: !!cur.noData, hasData: !cur.noData,
+        delta: cur.noData ? 'No data' : (prev && prev.noData) ? 'No data for ' + prev.key : pc ? (delta === 0 ? 'Same as ' + prev.key : (delta > 0 ? '▲ ' : '▼ ') + Math.abs(delta) + '% vs ' + prev.key) : 'First month',
+        deltaStyle: 'flex-shrink: 0; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; background: rgba(255,255,255,0.18); color: #FFFFFF',
+        savingsF: fmt(cur.savings),
+        salaryF: fmt(cur.salary), creditedOn: '1 ' + cur.key,
+        regularF: fmt(c.regular),
+        expenses: cur.lines.map(function (l) { return { label: l[0], amountF: fmt(l[1]) }; }),
+        bills: cur.billList.map(function (b) {
+          return { name: b[0], last4: b[1], due: b[2] ? b[2] + ' ' + SHORT[(cur.mi + 1) % 12] : '—', amountF: fmt(b[3]) };
+        }),
+        billsF: fmt(c.billsTotal), owedOthersF: fmt(cur.owedOthers), toPayF: fmt(c.toPay),
+        owers: cur.owers.map(function (o) { return { name: o.name, why: o.why, amountF: fmt(o.amount) }; }),
+        noOwers: cur.owers.length === 0,
+        billBalanceLabel: c.billBalance > 0 ? 'Balance still to pay' : 'Balance left over',
+        billBalanceF: fmt(Math.abs(c.billBalance)),
+        billBalanceColor: c.billBalance > 0 ? '#B42318' : '#1E5E2B'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

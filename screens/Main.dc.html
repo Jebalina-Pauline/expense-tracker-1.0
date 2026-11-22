@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cards overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3B5BDB}a:hover{color:#2F4AB8}
+</style>
+</helmet>
+<div style="position: relative; filter: {{themeFilter}}; width: 390px; height: 844px; display: flex; flex-direction: column; background: #F4F5F7; font-family: Inter, system-ui, sans-serif; color: #111827; overflow: hidden">
+  <div style="flex: 1; overflow-y: auto; padding: 56px 20px 24px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 13px; font-weight: 500; color: #5F6672">{{todayLine}}</span>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.5px">Spending</h1>
+      </div>
+      <button type="button" aria-label="Add card" onClick="{{openAdd}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+      </button>
+    </div>
+
+    <section aria-label="Total spent" style="background: #111827; color: #FFFFFF; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #C7CCD6">Total spent · cards + others</span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 38px; font-weight: 700; letter-spacing: -1px">{{cur}}{{total}}</span>
+      </div>
+      <div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 3px">
+        <div style="width: {{creditPct}}; background: #7C93F2; border-radius: 4px"></div>
+        <div style="width: {{debitPct}}; background: #F59F00; border-radius: 4px"></div>
+        <div style="flex: 1; background: #63E6BE; border-radius: 4px"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #C7CCD6"><span style="width: 8px; height: 8px; border-radius: 4px; background: #7C93F2"></span>Credit cards</span>
+          <span style="font-size: 18px; font-weight: 600">{{cur}}{{creditTotal}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #C7CCD6"><span style="width: 8px; height: 8px; border-radius: 4px; background: #F59F00"></span>Debit cards</span>
+          <span style="font-size: 18px; font-weight: 600">{{cur}}{{debitTotal}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #C7CCD6"><span style="width: 8px; height: 8px; border-radius: 4px; background: #63E6BE"></span>Others</span>
+          <span style="font-size: 18px; font-weight: 600">{{cur}}{{othersTotal}}</span>
+        </div>
+      </div>
+    </section>
+
+    
+
+    <div role="group" aria-label="Filter cards" style="display: flex; gap: 8px">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+        <button type="button" onClick="{{f.pick}}" style="{{f.style}}">{{f.label}}</button>
+      </sc-for>
+    </div>
+
+    <section aria-label="Your cards" style="display: flex; flex-direction: column; gap: 10px">
+      <sc-if value="{{noCards}}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="background: #EEF1FD; border: 1px dashed #A9B6EE; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2F4AB8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+          <span style="font-size: 15px; font-weight: 600; color: #1E2A5A">{{noCardsTitle}}</span>
+          <span style="font-size: 13px; color: #3D4A7A">To show your spending here, add a card.</span>
+          <button type="button" onClick="{{openAdd}}" style="min-height: 44px; padding: 0 18px; border: none; border-radius: 22px; background: {{accent}}; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">+ Add card</button>
+        </div>
+      </sc-if>
+      <sc-for list="{{cards}}" as="card" hint-placeholder-count="4">
+        <button type="button" onClick="{{card.open}}" aria-label="{{card.aria}}" style="width: 100%; border: none; text-align: left; font-family: inherit; color: #111827; cursor: pointer; background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px">
+          <span aria-hidden="true" style="width: 48px; height: 34px; border-radius: 7px; background: {{card.swatch}}; display: flex; align-items: flex-end; justify-content: flex-end; padding: 4px; box-sizing: border-box; flex-shrink: 0">
+            <span style="font-size: 9px; font-weight: 600; color: #FFFFFF">{{card.last4}}</span>
+          </span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 15px; font-weight: 600">{{card.name}}</span>
+            <span style="font-size: 12px; color: #5F6672">{{card.type}} · •••• {{card.last4}}</span>
+            <sc-if value="{{card.hasOthers}}" hint-placeholder-val="{{ true }}">
+              <span style="font-size: 12px; font-weight: 500; color: #B34700">incl. {{cur}}{{card.othersF}} for others</span>
+            </sc-if>
+          </span>
+          <span style="font-size: 16px; font-weight: 600">{{cur}}{{card.spentF}}</span>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A919C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+        </button>
+      </sc-for>
+
+      <sc-if value="{{showOthersRow}}" hint-placeholder-val="{{ true }}">
+        <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px">
+          <div aria-hidden="true" style="width: 48px; height: 34px; border-radius: 7px; background: #E6FCF5; color: #0B5D4B; display: flex; align-items: center; justify-content: center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.8.8 3 2.6 3.5 5.2"></path></svg>
+          </div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 15px; font-weight: 600">Others</span>
+            <span style="font-size: 12px; color: #5F6672">{{othersSub}}</span>
+          </div>
+          <span style="font-size: 16px; font-weight: 600">{{cur}}{{othersTotal}}</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{showOthersList}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 12px; color: #5F6672">Paid by someone else for you — from your split bills. Updates automatically.</span>
+          <sc-for list="{{owed}}" as="o" hint-placeholder-count="1">
+            <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px">
+              <div aria-hidden="true" style="width: 40px; height: 40px; border-radius: 20px; background: #E7EBFB; color: #2F4AB8; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0">{{o.initials}}</div>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+                <span style="font-size: 15px; font-weight: 600">{{o.name}}</span>
+                <span style="font-size: 12px; color: #5F6672">{{o.what}}</span>
+              </div>
+              <span style="font-size: 16px; font-weight: 600; color: #9B1C1C">{{cur}}{{o.amountF}}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{noOwed}}" hint-placeholder-val="{{ false }}">
+            <div style="background: #FFFFFF; border-radius: 18px; padding: 20px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #3D434D">
+              <span>You don’t owe anyone right now</span><span style="font-weight: 600">{{cur}}0</span>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </section>
+  </div>
+
+  <nav aria-label="Main" style="height: 82px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E3E5E9; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 14px; box-sizing: border-box">
+    <a href="Main.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: {{accent}}; font-weight: 600">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+      Cards
+    </a>
+    <a href="Split.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.8.8 3 2.6 3.5 5.2"></path></svg>
+      Bills
+    </a>
+    <a href="Budget.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 7l12-3v3"></path><circle cx="16.5" cy="14" r="1.2"></circle></svg>
+      Budget
+    </a>
+    <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path><path d="M12 8v4l3 2"></path></svg>
+      History
+    </a>
+    <a href="Profile.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"></path></svg>
+      Profile
+    </a>
+  </nav>
+
+  <sc-if value="{{detailOpen}}" hint-placeholder-val="{{ false }}">
+    <section role="dialog" aria-modal="true" aria-labelledby="detail-h" style="position: absolute; inset: 0; z-index: 4; background: #F4F5F7; display: flex; flex-direction: column">
+      <div style="flex: 1; overflow-y: auto; padding: 52px 20px 28px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <button type="button" aria-label="Back to cards" onClick="{{closeDetail}}" style="width: 44px; height: 44px; margin-left: -10px; border: none; border-radius: 22px; background: transparent; color: #111827; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <h2 id="detail-h" style="margin: 0; font-size: 20px; font-weight: 700">{{d.name}}</h2>
+        </div>
+
+        <div aria-hidden="true" style="height: 190px; border-radius: 20px; background: {{d.swatch}}; color: #FFFFFF; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="font-size: 16px; font-weight: 600">{{d.name}}</span>
+            <span style="padding: 3px 10px; border-radius: 10px; background: rgba(255,255,255,0.2); font-size: 12px; font-weight: 600">{{d.type}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; opacity: 0.85">Spent this month</span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700">{{cur}}{{d.spentF}}</span>
+          </div>
+          <span style="font-family: 'Space Grotesk', sans-serif; font-size: 16px; letter-spacing: 2px">•••• •••• •••• {{d.last4}}</span>
+        </div>
+
+        <sc-if value="{{d.isCredit}}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 12px; color: #5F6672">Bill due</span>
+              <span style="font-size: 16px; font-weight: 700">{{d.dueText}}</span>
+            </div>
+            <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; color: #5F6672">Limit used · {{d.usedPct}}</span>
+              <div style="height: 6px; border-radius: 3px; background: #EDEFF2; overflow: hidden"><div style="width: {{d.usedPct}}; height: 6px; background: {{accent}}; border-radius: 3px"></div></div>
+              <span style="font-size: 12px; color: #5F6672">of {{cur}}{{d.limitF}}</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 700">This month’s breakdown</h3>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Your spending</span><span>{{cur}}{{d.mineF}}</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Split bills (your share)</span><span>{{cur}}{{d.splitF}}</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Spent for others</span><span style="color: #B34700">{{cur}}{{d.lentF}}</span></div>
+          <div style="height: 1px; background: #E3E5E9"></div>
+          <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700"><span>{{d.totalLabel}}</span><span>{{cur}}{{d.spentF}}</span></div>
+          <span style="font-size: 12px; color: #5F6672">Updates automatically from your expenses, split bills and money lent.</span>
+        </div>
+
+        <div style="background: #FFFFFF; border-radius: 18px; padding: 4px 16px; display: flex; flex-direction: column">
+          <h3 style="margin: 12px 0 4px; font-size: 14px; font-weight: 700">Transactions</h3>
+          <sc-for list="{{d.txns}}" as="t" hint-placeholder-count="4">
+            <div style="min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid #EDEFF2">
+              <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                <span style="font-size: 14px; font-weight: 500">{{t.what}}</span>
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5F6672">{{t.date}}
+                  <sc-if value="{{t.hasTag}}" hint-placeholder-val="{{ false }}"><span style="{{t.tagStyle}}">{{t.tag}}</span></sc-if>
+                </span>
+              </div>
+              <span style="font-size: 14px; font-weight: 600; flex-shrink: 0">{{cur}}{{t.amountF}}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <button type="button" onClick="{{openEdit}}" style="min-height: 52px; border: 1px solid #D5D8DE; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; cursor: pointer">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg>
+            Edit
+          </button>
+          <button type="button" onClick="{{askDelete}}" style="min-height: 52px; border: 1px solid #F1B5B5; border-radius: 14px; background: #FFF5F5; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 600; color: #B42318; cursor: pointer">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M6 7l1 13h10l1-13"></path></svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column">
+      <button type="button" aria-label="Close" onClick="{{closeSheet}}" style="flex: 1; min-height: 60px; border: none; background: rgba(17,24,39,0.45); cursor: pointer"></button>
+      <section role="dialog" aria-modal="true" aria-labelledby="add-card-h" style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 14px; max-height: 760px; overflow-y: auto; box-sizing: border-box">
+        <div aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #D5D8DE"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h2 id="add-card-h" style="margin: 0; font-size: 18px; font-weight: 700">{{sheetTitle}}</h2>
+          <button type="button" aria-label="Close" onClick="{{closeSheet}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: #F4F5F7; color: #111827; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </div>
+
+        <div aria-hidden="true" style="height: 150px; border-radius: 18px; background: {{form.swatch}}; color: #FFFFFF; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="font-size: 15px; font-weight: 600">{{previewName}}</span>
+            <span style="padding: 3px 10px; border-radius: 10px; background: rgba(255,255,255,0.2); font-size: 12px; font-weight: 600">{{form.type}}</span>
+          </div>
+          <span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; letter-spacing: 2px">•••• •••• •••• {{previewLast4}}</span>
+        </div>
+
+        <div role="group" aria-label="Card type" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; background: #EDEFF2; border-radius: 12px; padding: 4px">
+          <sc-for list="{{types}}" as="ty" hint-placeholder-count="2">
+            <button type="button" aria-pressed="{{ty.on}}" onClick="{{ty.pick}}" style="{{ty.style}}">{{ty.label}}</button>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="card-name" style="font-size: 12px; font-weight: 600; color: #5F6672">Card name</label>
+          <input id="card-name" type="text" placeholder="e.g. Kotak Zen" value="{{form.name}}" onChange="{{setName}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <label for="card-last4" style="font-size: 12px; font-weight: 600; color: #5F6672">Last 4 digits</label>
+            <input id="card-last4" type="text" inputmode="numeric" maxlength="4" placeholder="0000" value="{{form.last4}}" onChange="{{setLast4}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+          </div>
+          <sc-if value="{{isAdding}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <label for="card-spent" style="font-size: 12px; font-weight: 600; color: #5F6672">Spent this month ({{cur}})</label>
+              <input id="card-spent" type="text" inputmode="decimal" placeholder="0" value="{{form.spent}}" onChange="{{setSpent}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+            </div>
+          </sc-if>
+          <sc-if value="{{isEditing}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding-bottom: 4px">
+              <span style="font-size: 12px; font-weight: 600; color: #5F6672">Spent this month</span>
+              <span style="font-size: 15px; font-weight: 700">{{cur}}{{editSpentF}}</span>
+              <span style="font-size: 11px; color: #5F6672">Calculated automatically</span>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{isCredit}}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <label for="card-limit" style="font-size: 12px; font-weight: 600; color: #5F6672">Credit limit ({{cur}})</label>
+              <input id="card-limit" type="text" inputmode="decimal" placeholder="0" value="{{form.limit}}" onChange="{{setLimit}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <label for="card-due" style="font-size: 12px; font-weight: 600; color: #5F6672">Bill due day</label>
+              <input id="card-due" type="text" inputmode="numeric" placeholder="e.g. 5" value="{{form.due}}" onChange="{{setDue}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; font-weight: 600; color: #5F6672">Card colour</span>
+          <div role="group" aria-label="Card colour" style="display: flex; gap: 12px">
+            <sc-for list="{{colours}}" as="co" hint-placeholder-count="5">
+              <button type="button" aria-pressed="{{co.on}}" aria-label="{{co.name}}" onClick="{{co.pick}}" style="{{co.style}}"></button>
+            </sc-for>
+          </div>
+        </div>
+
+        <button type="button" onClick="{{saveCard}}" style="min-height: 52px; border: none; border-radius: 14px; background: {{accent}}; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">{{saveLabel}}</button>
+      </section>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{confirmingDelete}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 8; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="del-card-h" aria-describedby="del-card-d" style="width: 100%; background: #FFFFFF; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 40px rgba(17,24,39,0.25)">
+        <h2 id="del-card-h" style="margin: 0; font-size: 18px; font-weight: 700">Are you sure?</h2>
+        <p id="del-card-d" style="margin: 0; font-size: 14px; line-height: 1.5; color: #3D434D">Delete <strong>{{d.name}}</strong> (•••• {{d.last4}})? Its {{cur}}{{d.spentF}} will be removed from your totals.</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <button type="button" onClick="{{cancelDelete}}" style="min-height: 48px; border: 1px solid #D5D8DE; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; cursor: pointer">Cancel</button>
+          <button type="button" onClick="{{confirmDelete}}" style="min-height: 48px; border: none; border-radius: 12px; background: #C92A2A; font-family: inherit; font-size: 15px; font-weight: 600; color: #FFFFFF; cursor: pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{lock.show}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-modal="true" aria-labelledby="lock-title" style="position: absolute; inset: 0; z-index: 200; background: {{lock.bg}}; color: {{lock.text}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 36px 28px; box-sizing: border-box; font-family: Inter, system-ui, sans-serif">
+      <div aria-hidden="true" style="width: 60px; height: 60px; border-radius: 30px; background: {{lock.accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+        <h2 id="lock-title" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700">{{lock.title}}</h2>
+        <p role="status" style="margin: 0; font-size: 14px; color: {{lock.hintColor}}">{{lock.hint}}</p>
+      </div>
+      <div aria-hidden="true" style="display: flex; gap: 16px">
+        <sc-for list="{{lock.dots}}" as="pd" hint-placeholder-count="4"><span style="{{pd.style}}"></span></sc-for>
+      </div>
+      <sc-if value="{{lock.forgotOpen}}" hint-placeholder-val="{{ false }}">
+        <div style="width: 100%; background: {{lock.surface}}; border: 1px solid {{lock.border}}; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box">
+          <span style="font-size: 15px; font-weight: 700">Forgot your PIN?</span>
+          <span style="font-size: 13px; color: {{lock.muted}}">For your privacy the PIN can’t be recovered. You can erase all data on this device and then restore your latest backup from Profile.</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <button type="button" onClick="{{lock.closeForgot}}" style="min-height: 46px; border: 1px solid {{lock.border}}; border-radius: 12px; background: transparent; color: {{lock.text}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+            <button type="button" onClick="{{lock.eraseAll}}" style="min-height: 46px; border: none; border-radius: 12px; background: {{lock.danger}}; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Erase data</button>
+          </div>
+        </div>
+      </sc-if>
+      <div role="group" aria-label="PIN keypad" style="width: 100%; max-width: 260px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px">
+        <sc-for list="{{lock.keys}}" as="pk" hint-placeholder-count="12">
+          <button type="button" aria-label="{{pk.aria}}" aria-hidden="{{pk.hidden}}" onClick="{{pk.press}}" style="{{pk.style}}">{{pk.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{lock.isUnlock}}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{lock.openForgot}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.accent}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Forgot PIN?</button>
+      </sc-if>
+      <sc-if value="{{lock.canCancel}}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{lock.cancel}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.muted}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#3B5BDB","options":["#3B5BDB","#0B7285","#6741D9","#111827"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var blank = { type: 'Credit', name: '', last4: '', spent: '', limit: '', due: '', swatch: '#1E3A8A' };
+    this.blank = blank;
+    this.state = {
+      filter: 'All',
+      bills: {},
+      sheetMode: null,      // 'add' | 'edit' | null
+      detailId: null,
+      confirmDelete: false,
+      nextId: 1,
+      form: blank,
+      // Each card's amount is the sum of its transactions. Tags: Lent = paid for someone (Shared › Lent on cards), Split = your share of a split bill.
+      cards: [
+        // Credit card spending comes from the Shared screen (self bills, paid for others, split shares)
+        { id: 'hdfc', name: 'HDFC Regalia', type: 'Credit', last4: '4521', swatch: '#1E3A8A', limit: 300000, due: 5, txns: [] },
+        { id: 'icici', name: 'ICICI Amazon Pay', type: 'Credit', last4: '8834', swatch: '#9A3412', limit: 150000, due: 12, txns: [] },
+        { id: 'sbi', name: 'SBI Savings', type: 'Debit', last4: '1209', swatch: '#0B7285', txns: [
+          ['ATM withdrawal', '2 Nov', 6200, ''], ['BigBasket', 'This month', 5240, ''], ['Electricity bill', '6 Nov', 2400, ''], ['Pharmacy', '15 Nov', 1800, ''] ] },
+        { id: 'axis', name: 'Axis Salary', type: 'Debit', last4: '7710', swatch: '#7E1D5A', txns: [
+          ['Uber rides', 'This month', 2310, ''], ['Gym membership', '1 Nov', 1900, ''], ['Movie tickets', '9 Nov', 1100, ''], ['Café', '18 Nov', 900, ''] ] }
+      ],
+      // Latest data from the Shared screen (same sample until that screen saves its own)
+      shared: {
+      selfItems: [
+        { id: 's1', card: 'HDFC •• 4521', what: 'Amazon', date: '11/11/26', amount: 5600 },
+        { id: 's2', card: 'HDFC •• 4521', what: 'Swiggy & Zomato', date: '20/11/26', amount: 3850 },
+        { id: 's3', card: 'ICICI •• 8834', what: 'Amazon groceries', date: '16/11/26', amount: 4200 },
+        { id: 's4', card: 'ICICI •• 8834', what: 'Fuel', date: '20/11/26', amount: 3100 }
+      ],
+      lentItems: [
+        { id: 'p1', who: 'Arun Kumar', what: 'Flight tickets', card: 'HDFC •• 4521', amount: 4000, paid: 1000, date: '08/11/26' },
+        { id: 'p2', who: 'Priya S', what: 'Headphones', card: 'HDFC •• 4521', amount: 2150, paid: 0, date: '03/11/26' },
+        { id: 'p3', who: 'Karthik R', what: 'Concert tickets', card: 'ICICI •• 8834', amount: 3500, paid: 1500, date: '12/11/26' }
+      ],
+      cardSplits: { 'HDFC •• 4521': 8750, 'ICICI •• 8834': 2000 },
+      oweItems: [],
+      groups: [
+        { id: 'g1', name: 'Goa trip', net: 2445, bal: { Arun: 815, Divya: 415, Karthik: 1215 } },
+        { id: 'g2', name: 'Flat 3B', net: -1250, bal: { Priya: -850, Meera: -400 } },
+        { id: 'g3', name: 'Office lunches', net: 1700, bal: { Arun: 400, Priya: 400, Divya: 400, Rahul: 100, Sneha: 400 } }
+      ]
+    }
+    };
+  }
+  _loadPrefs() {
+    // theme, accent and currency chosen on the Profile screen
+    try {
+      var p = JSON.parse(window.localStorage.getItem('expenseTracker.prefs') || 'null') || {};
+      try { p.systemDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); } catch (e2) {}
+      this.setState({ prefs: p });
+    } catch (e) {}
+  }
+  componentDidMount() {
+    this.lockMount();
+    var selfP = this;
+    var clockSelf = this;
+    this._clock = setInterval(function () { clockSelf.setState({ now: Date.now() }); clockSelf.notifyCheck(); }, 30000);
+    this.notifyCheck();
+    this._loadPrefs();
+    this._onPrefs = function (ev) { if (!ev || ev.key === 'expenseTracker.prefs') selfP._loadPrefs(); };
+    try { window.addEventListener('storage', this._onPrefs); } catch (e) {}
+
+    var self = this;
+    try {
+      var cards = JSON.parse(window.localStorage.getItem('expenseTracker.cards') || 'null');
+      if (Array.isArray(cards)) {
+        var maxId = 0;
+        cards.forEach(function (c) { var m = /^new(\d+)$/.exec(c.id); if (m) maxId = Math.max(maxId, +m[1]); });
+        this.setState({ cards: cards.map(function (c) { return Object.assign({ txns: [] }, c); }), nextId: maxId + 1 });
+      }
+    } catch (e) {}
+    var loadShared = function () {
+      try {
+        var sh = JSON.parse(window.localStorage.getItem('expenseTracker.shared') || 'null');
+        if (sh && typeof sh === 'object') self.setState({ shared: sh });
+      } catch (e) {}
+    };
+    loadShared();
+    this._onStorage = function (ev) { if (!ev || ev.key === 'expenseTracker.shared') loadShared(); };
+    try { window.addEventListener('storage', this._onStorage); } catch (e) {}
+  }
+  componentDidUpdate() {
+    // Share the card list (added, edited, deleted) with the Shared, Budget and Profile screens
+    var json = JSON.stringify(this.state.cards);
+    if (json === this._lastCards) return;
+    this._lastCards = json;
+    try { window.localStorage.setItem('expenseTracker.cards', json); } catch (e) {}
+  }
+  // Device notifications: uses the browser / installed-app Notification API.
+  // Reminders fire while the app is open (checked on launch and every minute); each one is sent at most once per period.
+  notifyCheck() {
+    var get = function (k) { try { return JSON.parse(window.localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+    var put = function (k, v) { try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    var on = get('expenseTracker.notify') || { bills: true, remind: true, budget: true };
+    var sent = get('expenseTracker.notifySent') || {};
+    var now = new Date(), today = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+    var n = function (v) { var x = parseFloat(v); return isFinite(x) ? x : 0; };
+    var show = function (title, body, tag) {
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+          navigator.serviceWorker.getRegistration().then(function (reg) {
+            if (reg && reg.showNotification) reg.showNotification(title, { body: body, tag: tag });
+            else new Notification(title, { body: body, tag: tag });
+          }).catch(function () { try { new Notification(title, { body: body, tag: tag }); } catch (e) {} });
+        } else new Notification(title, { body: body, tag: tag });
+      } catch (e) {}
+    };
+    var changed = false;
+    if (on.bills) {
+      var cards = get('expenseTracker.cards') || [];
+      var bills = get('expenseTracker.cardBills') || {};
+      cards.forEach(function (c) {
+        if (c.type !== 'Credit' || !c.due) return;
+        var due = new Date(now.getFullYear(), now.getMonth(), c.due);
+        if (due < new Date(now.getFullYear(), now.getMonth(), now.getDate())) due = new Date(now.getFullYear(), now.getMonth() + 1, c.due);
+        var days = Math.round((due - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+        var key = 'bill-' + c.id + '-' + due.toDateString();
+        if (days <= 3 && !sent[key]) {
+          var amt = n(bills[c.id]);
+          show('Card bill due ' + (days === 0 ? 'today' : 'in ' + days + (days === 1 ? ' day' : ' days')),
+            c.name + ' •• ' + c.last4 + (amt ? ' · ' + amt.toFixed(2) + ' to pay' : '') + ' · due ' + ('0' + due.getDate()).slice(-2) + '/' + ('0' + (due.getMonth() + 1)).slice(-2) + '/' + String(due.getFullYear()).slice(-2), key);
+          sent[key] = today; changed = true;
+        }
+      });
+    }
+    if (on.remind) {
+      var sh = get('expenseTracker.shared') || {};
+      var owed = 0;
+      (sh.lentItems || []).forEach(function (i) { owed += Math.max(0, n(i.amount) - n(i.paid)); });
+      (sh.groups || []).forEach(function (g) { Object.keys(g.bal || {}).forEach(function (p) { if (g.bal[p] > 0) owed += g.bal[p]; }); });
+      var last = sent.remindAt ? new Date(sent.remindAt) : null;
+      if (owed > 0 && (!last || now - last >= 7 * 86400000)) {
+        show('Money people owe you', 'You are owed ' + owed.toFixed(2) + ' in total. Open Bills to send reminders.', 'remind');
+        sent.remindAt = now.toISOString(); changed = true;
+      }
+    }
+    if (on.budget) {
+      var b = get('expenseTracker.budget') || {};
+      var reg = 0; (b.items || []).forEach(function (i) { reg += n(i.value); });
+      var left = n(b.salary) - reg - n(b.saveMe);
+      var mk = 'budget-' + now.getFullYear() + '-' + now.getMonth();
+      if (n(b.salary) > 0 && left < 0 && !sent[mk]) {
+        show('Over budget', 'Your expenses and Save me salary are ' + Math.abs(left).toFixed(2) + ' more than this month’s salary.', 'budget');
+        sent[mk] = today; changed = true;
+      }
+    }
+    if (changed) put('expenseTracker.notifySent', sent);
+  }
+  // ---- App lock (4-digit PIN). Turned on/off in Profile › App lock. Stored only on this device as a salted hash.
+  lockHash(pin, salt) {
+    var h = 2166136261, str = salt + ':' + pin;
+    for (var r = 0; r < 500; r++) { for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } str = h.toString(16) + str.slice(0, 12); }
+    return h.toString(16);
+  }
+  lockRead() { try { return JSON.parse(window.localStorage.getItem('expenseTracker.lock') || 'null'); } catch (e) { return null; } }
+  lockInit() {
+    var lk = this.lockRead(), unlocked = false;
+    try { unlocked = window.sessionStorage.getItem('expenseTracker.unlocked') === '1'; } catch (e) {}
+    var on = !!(lk && lk.on && lk.h);
+    var p = { lockOn: on };
+    if (!on) { p.locked = false; if ((this.state || {}).pinMode === 'unlock') p.pinMode = null; }
+    else if (!unlocked) { p.locked = true; p.pinMode = 'unlock'; p.pinEntry = ''; p.pinErr = ''; }
+    else if ((this.state || {}).pinMode === 'unlock') { p.locked = false; p.pinMode = null; }
+    this.setState(p);
+  }
+  lockMount() {
+    var self = this;
+    this.lockInit();
+    this._onLock = function (ev) { if (!ev || ev.key === 'expenseTracker.lock' || ev.key === 'expenseTracker.unlockPing' || ev.key === 'expenseTracker.unlocked') self.lockInit(); };
+    // lock again when the app goes to the background
+    this._onHide = function () {
+      if (document.visibilityState === 'hidden' && (self.state || {}).lockOn) {
+        try { window.sessionStorage.removeItem('expenseTracker.unlocked'); } catch (e) {}
+        self.setState({ locked: true, pinMode: 'unlock', pinEntry: '', pinErr: '' });
+      }
+    };
+    try { window.addEventListener('storage', this._onLock); document.addEventListener('visibilitychange', this._onHide); } catch (e) {}
+  }
+  lockUnmount() { try { window.removeEventListener('storage', this._onLock); document.removeEventListener('visibilitychange', this._onHide); } catch (e) {} }
+  markUnlocked() {
+    try { window.sessionStorage.setItem('expenseTracker.unlocked', '1'); window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now())); } catch (e) {}
+  }
+  pinDone(pin) {
+    var self = this, mode = (this.state || {}).pinMode, lk = this.lockRead();
+    var ok = function () { return lk && lk.h === self.lockHash(pin, lk.s); };
+    if (mode === 'unlock') {
+      if (ok()) { this.markUnlocked(); this.setState({ locked: false, pinMode: null, pinEntry: '', pinErr: '' }); }
+      else this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' });
+    } else if (mode === 'set') {
+      this.setState({ pinMode: 'confirm', pinFirst: pin, pinEntry: '', pinErr: '' });
+    } else if (mode === 'confirm') {
+      if (pin !== (this.state || {}).pinFirst) { this.setState({ pinMode: 'set', pinFirst: '', pinEntry: '', pinErr: 'PINs didn’t match. Start again.' }); return; }
+      var salt = Math.random().toString(36).slice(2, 10);
+      try { window.localStorage.setItem('expenseTracker.lock', JSON.stringify({ on: true, s: salt, h: this.lockHash(pin, salt) })); } catch (e) {}
+      this.markUnlocked();
+      this.setState({ lockOn: true, pinMode: null, pinFirst: '', pinEntry: '', pinErr: '', lockToast: 'App lock is on' });
+    } else if (mode === 'off' || mode === 'change') {
+      if (!ok()) { this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' }); return; }
+      if (mode === 'change') { this.setState({ pinMode: 'set', pinEntry: '', pinErr: '' }); return; }
+      try { window.localStorage.removeItem('expenseTracker.lock'); } catch (e) {}
+      this.setState({ lockOn: false, pinMode: null, pinEntry: '', pinErr: '', lockToast: 'App lock is off' });
+    }
+  }
+  lockVals(accent, c) {
+    var self = this, mode = (this.state || {}).pinMode, entry = (this.state || {}).pinEntry || '';
+    var titles = { unlock: 'Enter your PIN', set: 'Create a 4-digit PIN', confirm: 'Re-enter your PIN', off: 'Enter PIN to turn off app lock', change: 'Enter your current PIN' };
+    var hints = { unlock: 'Your expense data is locked', set: 'You’ll need it every time you open the app', confirm: 'Type the same PIN again', off: 'App lock will be turned off', change: 'Then choose a new PIN' };
+    var press = function (k) {
+      return function () {
+        var e = (self.state || {}).pinEntry || '';
+        if (k === 'del') { self.setState({ pinEntry: e.slice(0, -1), pinErr: '' }); return; }
+        if (e.length >= 4) return;
+        e += k; self.setState({ pinEntry: e, pinErr: '' });
+        if (e.length === 4) setTimeout(function () { self.pinDone(e); }, 120);
+      };
+    };
+    var keyStyle = 'height: 64px; border-radius: 32px; border: none; background: ' + c.key + '; color: ' + c.text + '; font-family: inherit; font-size: 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center';
+    var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map(function (k) {
+      return { label: k === 'del' ? '⌫' : k, aria: k === 'del' ? 'Delete digit' : (k || 'blank'), press: k ? press(k) : null, hidden: !k,
+        style: k ? (k === 'del' ? keyStyle.replace('background: ' + c.key, 'background: transparent') : keyStyle) : keyStyle + '; visibility: hidden' };
+    });
+    return {
+      show: !!mode && (mode !== 'unlock' || !!(this.state || {}).locked),
+      title: titles[mode] || '', hint: (this.state || {}).pinErr || hints[mode] || '',
+      hintColor: (this.state || {}).pinErr ? c.danger : c.muted,
+      dots: [0, 1, 2, 3].map(function (i) { var f = i < entry.length; return { style: 'width: 14px; height: 14px; border-radius: 7px; border: 2px solid ' + (f ? accent : c.muted) + '; background: ' + (f ? accent : 'transparent') }; }),
+      keys: keys,
+      canCancel: mode !== 'unlock',
+      isUnlock: mode === 'unlock' && !(this.state || {}).forgotOpen,
+      cancel: function () { self.setState({ pinMode: null, pinEntry: '', pinErr: '', pinFirst: '' }); },
+      forgotOpen: !!(this.state || {}).forgotOpen,
+      openForgot: function () { self.setState({ forgotOpen: true }); },
+      closeForgot: function () { self.setState({ forgotOpen: false }); },
+      eraseAll: function () {
+        // the only way past a forgotten PIN: wipe this device's data, then restore a backup from Profile
+        try {
+          var ks = []; for (var i = 0; i < window.localStorage.length; i++) { var k = window.localStorage.key(i); if (k && k.indexOf('expenseTracker.') === 0) ks.push(k); }
+          ks.forEach(function (k) { window.localStorage.removeItem(k); });
+          window.sessionStorage.removeItem('expenseTracker.unlocked');
+          window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now()));
+        } catch (e) {}
+        try { window.location.reload(); } catch (e) {}
+      },
+      bg: c.bg, text: c.text, muted: c.muted, accent: accent, danger: c.danger, surface: c.surface, border: c.border
+    };
+  }
+  componentWillUnmount() {
+    this.lockUnmount();
+    clearInterval(this._clock);
+    try { window.removeEventListener('storage', this._onStorage); } catch (e) {}
+  }
+  renderVals() {
+    var self = this;
+    // device date & time (re-read every 30 seconds so the app follows the phone's clock, time zone and month changes)
+    var NOW = new Date(this.state.now || Date.now());
+    var MSH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var MLONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var nextDue = function (d) { var y = NOW.getFullYear(), m = NOW.getMonth(); if (NOW.getDate() > d) { m++; if (m > 11) { m = 0; y++; } } return d + ' ' + MSH[m]; };
+    var ddmmyy = function (dt) { return ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + '/' + String(dt.getFullYear()).slice(-2); };
+    var accent = this.props.accent ?? '#3B5BDB';
+    var P = this.state.prefs || {};
+    if (P.accent) accent = P.accent;      // accent colour chosen in Profile
+    var CUR = { INR: ['₹', 'en-IN'], USD: ['$', 'en-US'], EUR: ['€', 'en-IE'], GBP: ['£', 'en-GB'], AED: ['AED ', 'en-US'], SGD: ['S$', 'en-SG'] }[P.currency || 'INR'] || ['₹', 'en-IN'];
+    var C = CUR[0];                        // currency symbol chosen in Profile
+    var darkMode = P.theme === 'Dark' || (P.theme === 'System' && !!P.systemDark);
+    var fmt = function (n) { return Number(n || 0).toLocaleString(CUR[1], { maximumFractionDigits: 2 }); };
+    var dec = function (s) { var t = String(s).replace(/[^0-9.]/g, ''); var i = t.indexOf('.'); if (i !== -1) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/\./g, '').slice(0, 2); return t; };
+    var num = function (s) { var n = parseFloat(String(s).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; };
+    var digits = function (s) { return String(s).replace(/[^0-9]/g, ''); };
+    var tagStyles = {
+      Lent: 'padding: 1px 7px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #FFF4E6; color: #8A3A00',
+      Split: 'padding: 1px 7px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #E7EBFB; color: #2F4AB8'
+    };
+
+    // Each card = its own transactions + everything charged to it on the Shared screen
+    var sh = this.state.shared || {};
+    var keyOf = function (c) { return String(c.name).trim().split(/\s+/)[0] + ' •• ' + c.last4; };
+    var all = this.state.cards.map(function (c) {
+      var k = keyOf(c);
+      var txns = (c.txns || []).slice();
+      (sh.selfItems || []).forEach(function (i) { if (i.card === k) txns.push([i.what, i.date, i.amount, '']); });
+      (sh.lentItems || []).forEach(function (l) { if (l.card === k) txns.push([l.what + ' · ' + String(l.who).split(' ')[0], l.date, l.amount, 'Lent']); });
+      if ((sh.cardSplits || {})[k]) txns.push(['Split bills · your share', 'This month', sh.cardSplits[k], 'Split']);
+      var spent = 0, lent = 0, split = 0;
+      txns.forEach(function (t) { spent += t[2]; if (t[3] === 'Lent') lent += t[2]; if (t[3] === 'Split') split += t[2]; });
+      return Object.assign({}, c, { txns: txns, spent: spent, lent: lent, split: split, mine: spent - lent - split });
+    });
+
+    // Others = what you owe people (Owe to entries + split bills someone else paid), from the Shared screen
+    var initials2 = function (n) { var p = String(n).trim().split(/\s+/); return ((p[0] || '?').charAt(0) + (p[1] ? p[1].charAt(0) : '')).toUpperCase(); };
+    var owed = (sh.oweItems || []).map(function (w) {
+      return { name: w.who, initials: initials2(w.who), what: w.what + ' · paid by ' + w.who, amountF: fmt(w.amount), amount: w.amount };
+    });
+    (sh.groups || []).forEach(function (g) {
+      Object.keys(g.bal || {}).forEach(function (m) {
+        if (g.bal[m] < 0) owed.push({ name: m, initials: initials2(m), what: g.name + ' · split bill', amountF: fmt(-g.bal[m]), amount: -g.bal[m] });
+      });
+    });
+    var others = 0;
+    owed.forEach(function (o) { others += o.amount; });
+    var credit = 0, debit = 0;
+    all.forEach(function (c) { if (c.type === 'Credit') credit += c.spent; else debit += c.spent; });
+    var total = credit + debit + others;
+
+    var filter = this.state.filter || 'All';
+    var filters = ['All', 'Credit', 'Debit', 'Others'].map(function (label) {
+      var on = label === filter;
+      return {
+        label: label,
+        pick: function () { self.setState({ filter: label }); },
+        style: 'min-height: 44px; padding: 0 16px; border-radius: 22px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid ' + (on ? '#111827' : '#D5D8DE') + '; background: ' + (on ? '#111827' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#111827')
+      };
+    });
+    var cards = all.filter(function (c) { return filter === 'All' || c.type === filter; }).map(function (c) {
+      return Object.assign({}, c, {
+        spentF: fmt(c.spent), othersF: fmt(c.lent), hasOthers: c.lent > 0,
+        aria: c.name + ', ' + c.type + ' card ending ' + c.last4 + ', ' + C + '' + fmt(c.spent) + ' spent. Open details',
+        open: function () { self.setState({ detailId: c.id }); }
+      });
+    });
+
+    // Detail view
+    var dc = null;
+    all.forEach(function (c) { if (c.id === self.state.detailId) dc = c; });
+    var d = dc ? {
+      name: dc.name, type: dc.type, last4: dc.last4, swatch: dc.swatch,
+      isCredit: dc.type === 'Credit',
+      spentF: fmt(dc.spent), mineF: fmt(dc.mine), splitF: fmt(dc.split), lentF: fmt(dc.lent),
+      totalLabel: dc.type === 'Credit' ? 'Bill so far' : 'Spent from account',
+      dueText: dc.due ? nextDue(dc.due) : '—',
+      limitF: fmt(dc.limit || 0),
+      usedPct: dc.limit ? Math.min(100, Math.round(dc.spent / dc.limit * 100)) + '%' : '0%',
+      txns: dc.txns.map(function (t) {
+        return { what: t[0], date: t[1], amountF: fmt(t[2]), tag: t[3], hasTag: !!t[3], tagStyle: tagStyles[t[3]] || '' };
+      })
+    } : { name: '', type: '', last4: '', swatch: '#1E3A8A', isCredit: false, spentF: '0', mineF: '0', splitF: '0', lentF: '0', totalLabel: '', dueText: '', limitF: '0', usedPct: '0%', txns: [] };
+
+    // Add / edit sheet
+    var form = this.state.form;
+    var setForm = function (patch) { self.setState({ form: Object.assign({}, self.state.form, patch) }); };
+    var seg = function (on) {
+      return 'min-height: 40px; border: none; border-radius: 9px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; background: ' + (on ? '#FFFFFF' : 'transparent') + '; color: ' + (on ? '#111827' : '#4B5260') + '; box-shadow: ' + (on ? '0 1px 2px rgba(17,24,39,0.12)' : 'none');
+    };
+    var palette = [['Navy', '#1E3A8A'], ['Rust', '#9A3412'], ['Teal', '#0B7285'], ['Plum', '#7E1D5A'], ['Graphite', '#1F2937']];
+    var mode = this.state.sheetMode;
+
+    // Bill amounts entered on the Budget screen (Rs 0 until entered)
+    var enteredBills = this.state.bills || {};
+    var billsTotal = 0;
+    var billRows = [
+      { key: 'hdfc', name: 'HDFC Regalia', due: nextDue(5) },
+      { key: 'icici', name: 'ICICI Amazon Pay', due: nextDue(12) }
+    ].map(function (b) {
+      var amt = num(enteredBills[b.key]);
+      billsTotal += amt;
+      return { name: b.name, due: b.due, amountF: fmt(amt) };
+    });
+
+    return {
+      lock: this.lockVals(accent, { bg: '#F4F5F7', text: '#111827', muted: '#5F6672', key: '#FFFFFF', danger: '#B42318', surface: '#FFFFFF', border: '#D5D8DE' }),
+      todayLine: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][NOW.getDay()] + ', ' + NOW.getDate() + ' ' + MSH[NOW.getMonth()] + ' ' + NOW.getFullYear() + ' · ' + NOW.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+      cur: C,
+      themeFilter: darkMode ? 'invert(0.92) hue-rotate(180deg)' : 'none',
+      billRows: billRows,
+      billsTotalF: fmt(billsTotal),
+      accent: accent,
+      total: fmt(total),
+      creditTotal: fmt(credit),
+      debitTotal: fmt(debit),
+      creditPct: (total ? credit / total * 100 : 0).toFixed(1) + '%',
+      debitPct: (total ? debit / total * 100 : 0).toFixed(1) + '%',
+      othersTotal: fmt(others),
+      othersSub: others > 0 ? 'Owed to ' + owed.length + (owed.length === 1 ? ' person' : ' people') + ' · from split bills' : 'You don’t owe anyone',
+      showOthersRow: filter === 'All' && others > 0,   // only when you owe someone
+      showOthersList: filter === 'Others',
+      owed: owed,
+      noOwed: owed.length === 0,
+      filters: filters,
+      cards: cards,
+      // Banner when there are no cards (or none of the filtered type)
+      noCards: filter !== 'Others' && cards.length === 0,
+      noCardsTitle: all.length === 0 ? 'No cards added yet' : 'No ' + filter.toLowerCase() + ' cards added yet',
+
+      detailOpen: !!dc,
+      d: d,
+      closeDetail: function () { self.setState({ detailId: null }); },
+      openEdit: function () {
+        if (!dc) return;
+        self.setState({ sheetMode: 'edit', form: { type: dc.type, name: dc.name, last4: dc.last4, spent: '', limit: dc.limit ? String(dc.limit) : '', due: dc.due ? String(dc.due) : '', swatch: dc.swatch } });
+      },
+      askDelete: function () { self.setState({ confirmDelete: true }); },
+      confirmingDelete: !!dc && this.state.confirmDelete,
+      cancelDelete: function () { self.setState({ confirmDelete: false }); },
+      confirmDelete: function () {
+        var id = self.state.detailId;
+        self.setState({ cards: self.state.cards.filter(function (c) { return c.id !== id; }), confirmDelete: false, detailId: null });
+      },
+
+      sheetOpen: !!mode,
+      isAdding: mode === 'add',
+      isEditing: mode === 'edit',
+      sheetTitle: mode === 'edit' ? 'Edit card' : 'Add a card',
+      saveLabel: mode === 'edit' ? 'Save changes' : 'Add card',
+      editSpentF: dc ? fmt(dc.spent) : '0',
+      openAdd: function () { self.setState({ sheetMode: 'add', form: self.blank }); },
+      closeSheet: function () { self.setState({ sheetMode: null }); },
+      form: form,
+      isCredit: form.type === 'Credit',
+      previewName: form.name || 'New card',
+      previewLast4: form.last4 || '0000',
+      types: ['Credit', 'Debit'].map(function (t) {
+        var on = form.type === t;
+        return { label: t + ' card', on: on, style: seg(on), pick: function () { setForm({ type: t }); } };
+      }),
+      colours: palette.map(function (p) {
+        var on = form.swatch === p[1];
+        return {
+          name: p[0], on: on,
+          pick: function () { setForm({ swatch: p[1] }); },
+          style: 'width: 44px; height: 44px; border-radius: 22px; background: ' + p[1] + '; cursor: pointer; border: 3px solid #FFFFFF; box-shadow: 0 0 0 2px ' + (on ? p[1] : 'transparent')
+        };
+      }),
+      setName: function (ev) { setForm({ name: ev.target.value }); },
+      setLast4: function (ev) { setForm({ last4: digits(ev.target.value).slice(0, 4) }); },
+      setSpent: function (ev) { setForm({ spent: dec(ev.target.value) }); },
+      setLimit: function (ev) { setForm({ limit: dec(ev.target.value) }); },
+      setDue: function (ev) { setForm({ due: digits(ev.target.value).slice(0, 2) }); },
+      saveCard: function () {
+        var f = self.state.form;
+        var base = { name: f.name || 'New card', type: f.type, last4: f.last4 || '0000', swatch: f.swatch,
+          limit: f.type === 'Credit' ? num(f.limit) : 0, due: f.type === 'Credit' ? num(f.due) : 0 };
+        if (self.state.sheetMode === 'edit') {
+          var id = self.state.detailId;
+          self.setState({ sheetMode: null, cards: self.state.cards.map(function (c) { return c.id === id ? Object.assign({}, c, base) : c; }) });
+        } else {
+          var opening = num(f.spent);
+          var card = Object.assign({ id: 'new' + self.state.nextId, txns: opening ? [['Spent before adding card', 'This month', opening, '']] : [] }, base);
+          self.setState({ sheetMode: null, filter: 'All', nextId: self.state.nextId + 1, cards: self.state.cards.concat([card]) });
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

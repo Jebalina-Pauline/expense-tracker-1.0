@@ -1,0 +1,1589 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bills: splits, paid and owed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3B5BDB}a:hover{color:#2F4AB8}
+</style>
+</helmet>
+<div style="position: relative; filter: {{themeFilter}}; width: 390px; height: 844px; display: flex; flex-direction: column; background: #F4F5F7; font-family: Inter, system-ui, sans-serif; color: #111827; overflow: hidden">
+  <div style="flex: 1; overflow-y: auto; padding: 56px 20px 104px; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 13px; font-weight: 500; color: #5F6672">Self bills · Paid for · Split bills</span>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.5px">Bills</h1>
+    </div>
+
+    <section aria-label="Your shared balance" style="background: #111827; color: #FFFFFF; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #C7CCD6">Others owe you</span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 700; letter-spacing: -1px">{{cur}}{{owedToYou}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 11px; color: #C7CCD6">Lent on cards</span>
+          <span style="font-size: 15px; font-weight: 600">{{cur}}{{fromCards}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 11px; color: #C7CCD6">From splits</span>
+          <span style="font-size: 15px; font-weight: 600">{{cur}}{{fromSplits}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 11px; color: #FFB3B3">You owe</span>
+          <span style="font-size: 15px; font-weight: 600">{{cur}}{{youOwe}}</span>
+        </div>
+      </div>
+    </section>
+
+    <div role="tablist" aria-label="Shared sections" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: #E3E5E9; border-radius: 14px; padding: 4px">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+        <button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{showSelf}}" hint-placeholder-val="{{ true }}">
+      <section aria-label="Self bills" style="display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; color: #5F6672">What you spent on your credit cards for yourself, plus your share of split bills.</span>
+        <sc-for list="{{selfCards}}" as="sc" hint-placeholder-count="2">
+          <div style="background: #FFFFFF; border-radius: 18px; padding: 4px 16px 14px; display: flex; flex-direction: column">
+            <div style="display: flex; justify-content: space-between; align-items: center; min-height: 48px">
+              <span style="font-size: 15px; font-weight: 600">{{sc.name}}</span>
+              <span style="font-size: 12px; font-weight: 600; color: #5F6672">{{sc.due}}</span>
+            </div>
+            <sc-for list="{{sc.items}}" as="it" hint-placeholder-count="2">
+              <button type="button" onClick="{{it.open}}" aria-label="{{it.aria}}" style="width: 100%; min-height: 52px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border: none; border-top: 1px solid #EDEFF2; background: transparent; padding: 0; font-family: inherit; color: #111827; text-align: left; cursor: pointer">
+                <span style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 14px">{{it.what}}</span>
+                  <span style="font-size: 12px; color: #5F6672">{{it.date}}</span>
+                </span>
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600">{{cur}}{{it.amountF}}
+                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A919C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </span>
+              </button>
+            </sc-for>
+            <sc-if value="{{sc.empty}}" hint-placeholder-val="{{ false }}">
+              <span style="min-height: 44px; display: flex; align-items: center; border-top: 1px solid #EDEFF2; font-size: 13px; color: #5F6672">No self expenses on this card yet</span>
+            </sc-if>
+            <sc-if value="{{sc.hasSplit}}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{sc.openSplit}}" aria-label="Your share of split bills on {{sc.name}}, {{cur}}{{sc.splitF}}. Open details" style="width: 100%; min-height: 52px; display: flex; justify-content: space-between; align-items: center; border: none; border-top: 1px solid #EDEFF2; background: transparent; padding: 0; font-family: inherit; font-size: 14px; color: #3D434D; text-align: left; cursor: pointer">
+                <span style="display: flex; align-items: center; gap: 8px"><span style="padding: 2px 7px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #E7EBFB; color: #2F4AB8">Split</span>Your share of split bills</span>
+                <span style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: #111827">{{cur}}{{sc.splitF}}
+                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A919C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </span>
+              </button>
+            </sc-if>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #E3E5E9; padding-top: 10px; font-size: 15px; font-weight: 700"><span>Your share</span><span>{{cur}}{{sc.totalF}}</span></div>
+          </div>
+        </sc-for>
+        <div style="background: #FFF4E6; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Your share (self bills)</span><span>{{cur}}{{billMine}}</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Paid for others</span><span>+ {{cur}}{{billOthers}}</span></div>
+          <div style="height: 1px; background: #F2D3B3"></div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600">Total card bills to pay</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700">{{cur}}{{billTotal}}</span></div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showPaid}}" hint-placeholder-val="{{ false }}">
+      <section aria-label="Paid for others" style="display: flex; flex-direction: column; gap: 10px">
+        <div style="background: #FFFFFF; border-radius: 18px; padding: 14px 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #5F6672">You paid</span><span style="font-size: 15px; font-weight: 700">{{cur}}{{billOthers}}</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #5F6672">Paid back</span><span style="font-size: 15px; font-weight: 700; color: #1E5E2B">{{cur}}{{paidBackF}}</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #5F6672">To collect</span><span style="font-size: 15px; font-weight: 700; color: #B34700">{{cur}}{{fromCards}}</span></div>
+        </div>
+        <h2 style="margin: 4px 0 0; font-size: 14px; font-weight: 700">You paid · they owe you</h2>
+        <sc-for list="{{paidFor}}" as="pf" hint-placeholder-count="3">
+          <div style="background: #FFFFFF; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+            <button type="button" onClick="{{pf.open}}" aria-label="{{pf.aria}}" style="width: 100%; border: none; background: transparent; padding: 0; font-family: inherit; color: #111827; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px">
+              <span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 20px; background: #E7EBFB; color: #2F4AB8; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0">{{pf.initials}}</span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 15px; font-weight: 600">{{pf.name}}</span>
+                <span style="font-size: 12px; color: #5F6672">{{pf.what}} · {{pf.card}}</span>
+              </span>
+              <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+                <span style="font-size: 11px; color: #5F6672">Owes you</span>
+                <span style="font-size: 16px; font-weight: 700; color: #B34700">{{cur}}{{pf.dueF}}</span>
+              </span>
+            </button>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="height: 6px; border-radius: 3px; background: #EDEFF2; overflow: hidden"><div style="width: {{pf.pct}}; height: 6px; background: #2B8A3E; border-radius: 3px"></div></div>
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px">
+                <span style="font-size: 12px; color: #5F6672">{{cur}}{{pf.paidF}} of {{cur}}{{pf.amountF}} paid back</span>
+                <button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #D5D8DE; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; color: #111827; cursor: pointer">Remind</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{noOneOwes}}" hint-placeholder-val="{{ false }}">
+          <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; font-size: 14px; color: #5F6672">No one owes you right now · {{cur}}0</div>
+        </sc-if>
+
+        <h2 style="margin: 8px 0 0; font-size: 14px; font-weight: 700">You owe</h2>
+        <sc-for list="{{youOweList}}" as="yo" hint-placeholder-count="1">
+          <div style="background: #FFFFFF; border-radius: 18px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+            <button type="button" onClick="{{yo.open}}" aria-label="{{yo.aria}}" style="flex: 1; min-width: 0; border: none; background: transparent; padding: 0; font-family: inherit; color: #111827; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px">
+              <span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 20px; background: #FFF0F0; color: #9B1C1C; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0">{{yo.initials}}</span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 15px; font-weight: 600">{{yo.name}}</span>
+                <span style="font-size: 12px; color: #5F6672">{{yo.what}}</span>
+              </span>
+              <span style="font-size: 16px; font-weight: 700; color: #9B1C1C">{{cur}}{{yo.amountF}}</span>
+            </button>
+            <button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #D5D8DE; border-radius: 10px; background: #FFFFFF; font-family: inherit; font-size: 12px; font-weight: 600; color: #111827; cursor: pointer; flex-shrink: 0">Settle up</button>
+          </div>
+        </sc-for>
+        <sc-if value="{{noYouOwe}}" hint-placeholder-val="{{ false }}">
+          <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; font-size: 14px; color: #5F6672">You don’t owe anyone right now · {{cur}}0</div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showGroups}}" hint-placeholder-val="{{ false }}">
+      <section aria-label="Groups" style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <div role="group" aria-label="Filter groups" style="display: flex; gap: 8px">
+            <sc-for list="{{groupFilters}}" as="gf" hint-placeholder-count="3">
+              <button type="button" aria-pressed="{{gf.on}}" onClick="{{gf.pick}}" style="{{gf.style}}">{{gf.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <span style="font-size: 12px; color: #5F6672">{{openCount}} open · {{closedCount}} closed</span>
+        <sc-if value="{{showGroupNames}}" hint-placeholder-val="{{ false }}">
+          <div style="background: #FFFFFF; border-radius: 18px; padding: 4px 16px; display: flex; flex-direction: column">
+            <sc-for list="{{groupNames}}" as="gn" hint-placeholder-count="5">
+              <button type="button" onClick="{{gn.open}}" style="width: 100%; min-height: 52px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border: none; border-top: {{gn.border}}; background: transparent; padding: 0; font-family: inherit; color: #111827; text-align: left; cursor: pointer">
+                <span style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 15px; font-weight: 600">{{gn.name}}</span>
+                  <span style="font-size: 12px; color: #5F6672">{{gn.members}}</span>
+                </span>
+                <span style="{{gn.badgeStyle}}">{{gn.status}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+          <button type="button" onClick="{{g.open}}" aria-label="{{g.aria}}" style="{{g.cardStyle}}">
+            <span style="display: flex; align-items: center; gap: 12px">
+              <span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 12px; background: {{g.tint}}; display: flex; align-items: center; justify-content: center; color: #111827; flex-shrink: 0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.8.8 3 2.6 3.5 5.2"></path></svg>
+              </span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 15px; font-weight: 600">{{g.name}}</span>
+                <span style="font-size: 12px; color: #5F6672">{{g.meta}}</span>
+              </span>
+              <span style="{{g.badgeStyle}}">{{g.status}}</span>
+            </span>
+            <span style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #EDEFF2; padding-top: 10px">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 11px; color: #5F6672">Total expense</span>
+                <span style="font-size: 16px; font-weight: 700">{{cur}}{{g.totalF}}</span>
+              </span>
+              <span style="font-size: 13px; font-weight: 700; color: {{g.color}}; text-align: right">{{g.balance}}</span>
+            </span>
+          </button>
+        </sc-for>
+      </section>
+    </sc-if>
+
+  </div>
+
+  <button type="button" onClick="{{openSheet}}" style="position: absolute; right: 20px; bottom: 100px; z-index: 2; min-height: 56px; padding: 0 20px 0 16px; border: none; border-radius: 28px; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 18px rgba(17,24,39,0.25)">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    Add expense
+  </button>
+
+  <nav aria-label="Main" style="height: 82px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E3E5E9; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 14px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+      Cards
+    </a>
+    <a href="Split.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: {{accent}}; font-weight: 600">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.8.8 3 2.6 3.5 5.2"></path></svg>
+      Bills
+    </a>
+    <a href="Budget.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 7l12-3v3"></path><circle cx="16.5" cy="14" r="1.2"></circle></svg>
+      Budget
+    </a>
+    <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path><path d="M12 8v4l3 2"></path></svg>
+      History
+    </a>
+    <a href="Profile.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"></path></svg>
+      Profile
+    </a>
+  </nav>
+
+  <sc-if value="{{detailOpen}}" hint-placeholder-val="{{ false }}">
+    <section role="dialog" aria-modal="true" aria-labelledby="dt-h" style="position: absolute; inset: 0; z-index: 4; background: #F4F5F7; display: flex; flex-direction: column">
+      <div style="flex: 1; overflow-y: auto; padding: 52px 20px 28px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <button type="button" aria-label="Back" onClick="{{closeDetail}}" style="width: 44px; height: 44px; margin-left: -10px; border: none; border-radius: 22px; background: transparent; color: #111827; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <span style="font-size: 12px; font-weight: 600; color: #5F6672">{{dt.kindLabel}}</span>
+            <h2 id="dt-h" style="margin: 0; font-size: 20px; font-weight: 700">{{dt.title}}</h2>
+          </div>
+        </div>
+
+        <sc-if value="{{dt.showBig}}" hint-placeholder-val="{{ false }}">
+          <div style="background: #111827; color: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; color: #C7CCD6">{{dt.bigLabel}}</span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700">{{cur}}{{dt.bigF}}</span>
+            <span style="font-size: 13px; color: {{dt.subColor}}">{{dt.sub}}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showRows}}" hint-placeholder-val="{{ false }}">
+          <div style="background: #FFFFFF; border-radius: 18px; padding: 4px 16px; display: flex; flex-direction: column">
+            <sc-for list="{{dt.rows}}" as="r" hint-placeholder-count="3">
+              <div style="min-height: 48px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: {{r.border}}; font-size: 14px">
+                <span style="color: #5F6672">{{r.label}}</span>
+                <span style="font-weight: 600; text-align: right">{{r.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showForm}}" hint-placeholder-val="{{ true }}">
+        <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+            <sc-for list="{{editFields}}" as="ef" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <sc-if value="{{ef.isName}}" hint-placeholder-val="{{ false }}">
+                  <input id="{{ef.id}}" type="text" aria-label="{{ef.label}}" placeholder="{{ef.label}}" value="{{ef.value}}" onChange="{{ef.change}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+                </sc-if>
+                <sc-if value="{{ef.isKind}}" hint-placeholder-val="{{ false }}">
+                  <fieldset style="margin: 0; padding: 0; border: none; min-width: 0">
+                    <legend style="padding: 0 0 6px; font-size: 12px; font-weight: 600; color: #5F6672">{{ef.label}}</legend>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px 16px">
+                      <sc-for list="{{ef.options}}" as="ko" hint-placeholder-count="3">
+                        <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: {{ko.color}}; white-space: nowrap">
+                          <input type="checkbox" checked="{{ko.on}}" disabled="{{ko.disabled}}" style="width: 20px; height: 20px; accent-color: #111827; margin: 0">
+                          {{ko.label}}
+                        </label>
+                      </sc-for>
+                    </div>
+                  </fieldset>
+                </sc-if>
+                <sc-if value="{{ef.isText}}" hint-placeholder-val="{{ true }}">
+                  <label for="{{ef.id}}" style="font-size: 12px; font-weight: 600; color: #5F6672">{{ef.label}}</label>
+                  <input id="{{ef.id}}" type="text" inputmode="{{ef.mode}}" placeholder="{{ef.placeholder}}" value="{{ef.value}}" onChange="{{ef.change}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+                </sc-if>
+                <sc-if value="{{ef.isMembers}}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size: 12px; font-weight: 600; color: #5F6672">{{ef.label}}</span>
+                  <div role="group" aria-label="Group members" style="display: flex; flex-wrap: wrap; gap: 8px">
+                    <sc-for list="{{memberChips}}" as="mc" hint-placeholder-count="4">
+                      <button type="button" onClick="{{mc.tap}}" onPointerDown="{{mc.pressStart}}" onPointerUp="{{mc.pressEnd}}" onPointerLeave="{{mc.pressEnd}}" onContextMenu="{{mc.menu}}" style="{{mc.style}}">{{mc.label}}</button>
+                    </sc-for>
+                    <button type="button" aria-label="Add member" aria-expanded="{{memberAdding}}" onClick="{{toggleMemberAdding}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px dashed #8A919C; background: #FFFFFF; color: {{accent}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                    </button>
+                  </div>
+                  <span style="font-size: 12px; color: #5F6672">Press and hold a name to remove it</span>
+                  <sc-if value="{{memberAdding}}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; gap: 8px; align-items: center">
+                      <input type="text" aria-label="New member" placeholder="Name or phone number" value="{{memberNew}}" onChange="{{setMemberNew}}" style="flex: 1; min-width: 0; min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box">
+                      <button type="button" onClick="{{addMember}}" style="min-height: 46px; padding: 0 16px; border: none; border-radius: 12px; background: #111827; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Add</button>
+                    </div>
+                  </sc-if>
+                </sc-if>
+                <sc-if value="{{ef.isSplitEdit}}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size: 12px; font-weight: 600; color: #5F6672">{{ef.label}}</span>
+                  <div role="group" aria-label="Split method" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; background: #EDEFF2; border-radius: 12px; padding: 4px">
+                    <sc-for list="{{ef.splitTabs}}" as="stb" hint-placeholder-count="2">
+                      <button type="button" aria-pressed="{{stb.on}}" onClick="{{stb.pick}}" style="{{stb.style}}">{{stb.label}}</button>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{ef.splitEqual}}" hint-placeholder-val="{{ true }}">
+                    <div style="background: #F4F5F7; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px">
+                      <sc-for list="{{ef.splitRows}}" as="sr" hint-placeholder-count="3">
+                        <div style="display: flex; justify-content: space-between; align-items: center; min-height: 32px; font-size: 14px">
+                          <span style="color: #3D434D">{{sr.label}}</span>
+                          <span style="font-weight: 600">{{cur}}{{sr.equalF}}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ef.splitManual}}" hint-placeholder-val="{{ false }}">
+                    <div style="background: #F4F5F7; border-radius: 14px; padding: 6px 14px 12px; display: flex; flex-direction: column">
+                      <sc-for list="{{ef.splitRows}}" as="sr" hint-placeholder-count="3">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px">
+                          <label for="{{sr.id}}" style="font-size: 14px; color: #3D434D">{{sr.label}}</label>
+                          <div style="display: flex; align-items: flex-end; gap: 4px; width: 140px; flex-shrink: 0; border-bottom: 2px solid #8A919C; padding-bottom: 4px">
+                            <span aria-hidden="true" style="font-size: 18px; font-weight: 600; color: #3D434D">{{cur}}</span>
+                            <input id="{{sr.id}}" type="text" inputmode="decimal" placeholder="0" value="{{sr.value}}" onChange="{{sr.change}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: #111827; text-align: right; padding: 0">
+                          </div>
+                        </div>
+                      </sc-for>
+                      <div style="height: 1px; background: #D5D8DE; margin: 8px 0"></div>
+                      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px">
+                        <span style="font-weight: 600">{{ef.splitBalLabel}}</span>
+                        <span style="font-weight: 700; color: {{ef.splitBalColor}}">{{cur}}{{ef.splitBalF}}</span>
+                      </div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+                <sc-if value="{{ef.isChoice}}" hint-placeholder-val="{{ false }}">
+                  <fieldset style="margin: 0; padding: 0; border: none; min-width: 0">
+                    <legend style="padding: 0 0 4px; font-size: 12px; font-weight: 600; color: #5F6672">{{ef.label}}</legend>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px 16px">
+                      <sc-for list="{{ef.options}}" as="op" hint-placeholder-count="3">
+                        <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: #111827; cursor: pointer; white-space: nowrap">
+                          <input type="checkbox" checked="{{op.on}}" onChange="{{op.pick}}" style="width: 20px; height: 20px; accent-color: #111827; margin: 0">
+                          {{op.label}}
+                        </label>
+                      </sc-for>
+                    </div>
+                  </fieldset>
+                </sc-if>
+                <sc-if value="{{ef.isCheck}}" hint-placeholder-val="{{ false }}">
+                  <label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; color: #111827; cursor: pointer">
+                    <input type="checkbox" checked="{{ef.checked}}" onChange="{{ef.toggle}}" style="width: 20px; height: 20px; accent-color: #111827; margin: 0">
+                    {{ef.label}}
+                  </label>
+                </sc-if>
+              </div>
+            </sc-for>
+        </div>
+        </sc-if>
+
+          <sc-if value="{{showList}}" hint-placeholder-val="{{ false }}">
+            <div style="background: #FFFFFF; border-radius: 18px; padding: 4px 16px; display: flex; flex-direction: column">
+              <h3 style="margin: 12px 0 4px; font-size: 14px; font-weight: 700">{{dt.listTitle}}</h3>
+              <sc-for list="{{dt.list}}" as="li" hint-placeholder-count="3">
+                <button type="button" onClick="{{li.open}}" aria-label="{{li.aria}}" style="width: 100%; min-height: 52px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border: none; border-top: 1px solid #EDEFF2; background: transparent; padding: 0; font-family: inherit; color: #111827; text-align: left; cursor: pointer">
+                  <span style="display: flex; flex-direction: column; gap: 2px">
+                    <span style="font-size: 14px">{{li.what}}</span>
+                    <span style="font-size: 12px; color: #5F6672">{{li.meta}}</span>
+                  </span>
+                  <span style="display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600">{{cur}}{{li.amountF}}
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A919C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <button type="button" onClick="{{primaryAction}}" style="min-height: 52px; border: none; border-radius: 14px; background: {{accent}}; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 600; color: #FFFFFF; cursor: pointer">
+            <sc-if value="{{primaryIsEdit}}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></sc-if>
+            <sc-if value="{{primaryIsSave}}" hint-placeholder-val="{{ true }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></sc-if>
+            {{editLabel}}
+          </button>
+          <sc-if value="{{showCancel}}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{cancelEdit}}" style="min-height: 52px; border: 1px solid #D5D8DE; border-radius: 14px; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; cursor: pointer">Cancel</button>
+          </sc-if>
+          <sc-if value="{{showDelete}}" hint-placeholder-val="{{ true }}">
+            <button type="button" onClick="{{askDelete}}" style="min-height: 52px; border: 1px solid #F1B5B5; border-radius: 14px; background: #FFF5F5; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 600; color: #B42318; cursor: pointer">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M6 7l1 13h10l1-13"></path></svg>
+              {{deleteLabel}}
+            </button>
+          </sc-if>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{confirmingDelete}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 9; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="del-h" aria-describedby="del-d" style="width: 100%; background: #FFFFFF; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 40px rgba(17,24,39,0.25)">
+        <h2 id="del-h" style="margin: 0; font-size: 18px; font-weight: 700">{{confirmTitle}}</h2>
+        <p id="del-d" style="margin: 0; font-size: 14px; line-height: 1.5; color: #3D434D">{{confirmText}}</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <button type="button" onClick="{{cancelDelete}}" style="min-height: 48px; border: 1px solid #D5D8DE; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; cursor: pointer">Cancel</button>
+          <button type="button" onClick="{{confirmDelete}}" style="min-height: 48px; border: none; border-radius: 12px; background: #C92A2A; font-family: inherit; font-size: 15px; font-weight: 600; color: #FFFFFF; cursor: pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column">
+      <button type="button" aria-label="Close add expense" onClick="{{closeSheet}}" style="flex: 1; min-height: 60px; border: none; background: rgba(17,24,39,0.45); cursor: pointer"></button>
+      <section role="dialog" aria-modal="true" aria-labelledby="new-h" style="background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 14px; max-height: 760px; overflow-y: auto; box-sizing: border-box">
+        <div aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #D5D8DE"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h2 id="new-h" style="margin: 0; font-size: 18px; font-weight: 700">Add expense</h2>
+          <button type="button" aria-label="Close" onClick="{{closeSheet}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: #F4F5F7; color: #111827; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column">
+          <input id="bill-what" type="text" aria-label="Expense name" placeholder="Expense name" value="{{what}}" onChange="{{setWhat}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+        </div>
+
+        <fieldset style="margin: 0; padding: 0; border: none; min-width: 0">
+          <legend style="padding: 0 0 6px; font-size: 12px; font-weight: 600; color: #5F6672">Type of expense</legend>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px 16px">
+            <sc-for list="{{kinds}}" as="k" hint-placeholder-count="3">
+              <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: #111827; cursor: pointer; white-space: nowrap">
+                <input type="checkbox" checked="{{k.on}}" onChange="{{k.toggle}}" style="width: 20px; height: 20px; accent-color: #111827; margin: 0">
+                {{k.label}}
+              </label>
+            </sc-for>
+          </div>
+        </fieldset>
+
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="bill-amt" style="font-size: 12px; font-weight: 600; color: #5F6672">Amount ({{cur}})</label>
+          <input id="bill-amt" type="text" inputmode="decimal" value="{{amount}}" onChange="{{setAmount}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: #111827; box-sizing: border-box; min-width: 0">
+        </div>
+
+        <sc-if value="{{showCard}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; font-weight: 600; color: #5F6672">Paid with</span>
+            <div role="group" aria-label="Paid with" style="display: flex; flex-wrap: wrap; gap: 8px">
+              <sc-for list="{{cardChips}}" as="cc" hint-placeholder-count="2">
+                <button type="button" aria-pressed="{{cc.on}}" onClick="{{cc.pick}}" style="{{cc.style}}">{{cc.label}}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isSplit}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; align-items: center; border: 1px solid #D5D8DE; border-radius: 12px; background: #FFFFFF; min-height: 46px; padding-left: 12px">
+                <input id="bill-group" type="text" aria-label="Group name" placeholder="Group name" value="{{groupPick}}" onChange="{{setGroup}}" onFocus="{{openGroupMenu}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; color: #111827">
+                <button type="button" aria-label="Show existing groups" aria-expanded="{{groupMenu}}" onClick="{{toggleGroupMenu}}" style="width: 44px; height: 44px; flex-shrink: 0; border: none; background: transparent; color: #5F6672; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                  <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="{{chevronStyle}}"><path d="M6 9l6 6 6-6"></path></svg>
+                </button>
+              </div>
+              <sc-if value="{{groupMenu}}" hint-placeholder-val="{{ false }}">
+                <div role="listbox" aria-label="Existing groups" style="border: 1px solid #E3E5E9; border-radius: 12px; background: #FFFFFF; box-shadow: 0 8px 20px rgba(17,24,39,0.1); padding: 4px; display: flex; flex-direction: column">
+                  <sc-for list="{{groupSuggestions}}" as="gs" hint-placeholder-count="3">
+                    <button type="button" role="option" aria-selected="{{gs.selected}}" onClick="{{gs.pick}}" style="{{gs.rowStyle}}">
+                      <span>{{gs.label}}</span>
+                      <span style="font-size: 12px; color: #5F6672">{{gs.meta}}</span>
+                    </button>
+                  </sc-for>
+                  <sc-if value="{{noGroupMatch}}" hint-placeholder-val="{{ false }}">
+                    <span style="padding: 12px; font-size: 13px; color: #5F6672">No existing group — “{{groupPick}}” will be created</span>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 12px; font-weight: 600; color: #5F6672">Paid by</span>
+              <div role="group" aria-label="Paid by" style="display: flex; flex-wrap: wrap; gap: 8px">
+                <sc-for list="{{payers}}" as="pb" hint-placeholder-count="1">
+                  <button type="button" aria-pressed="{{pb.on}}" onClick="{{pb.pick}}" onPointerDown="{{pb.pressStart}}" onPointerUp="{{pb.pressEnd}}" onPointerLeave="{{pb.pressEnd}}" onContextMenu="{{pb.menu}}" style="{{pb.style}}">{{pb.label}}</button>
+                </sc-for>
+                <button type="button" aria-label="Add who paid" aria-expanded="{{payerAdding}}" onClick="{{togglePayerAdding}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px dashed #8A919C; background: #FFFFFF; color: {{accent}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                  <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                </button>
+              </div>
+              <sc-if value="{{payerAdding}}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; gap: 8px; align-items: center">
+                  <input type="text" aria-label="Who paid" placeholder="Name or phone number" value="{{payerNew}}" onChange="{{setPayerNew}}" style="flex: 1; min-width: 0; min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box">
+                  <button type="button" onClick="{{addPayer}}" style="min-height: 46px; padding: 0 16px; border: none; border-radius: 12px; background: #111827; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Add</button>
+                </div>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{youPaid}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="font-size: 12px; font-weight: 600; color: #5F6672">Mode of payment</span>
+                <div role="group" aria-label="Mode of payment" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: #EDEFF2; border-radius: 12px; padding: 4px">
+                  <sc-for list="{{payModes}}" as="pm" hint-placeholder-count="3">
+                    <button type="button" aria-pressed="{{pm.on}}" onClick="{{pm.pick}}" style="{{pm.style}}">{{pm.label}}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 12px; font-weight: 600; color: #5F6672">{{membersTitle}}</span>
+              <div role="group" aria-label="Split between" style="display: flex; flex-wrap: wrap; gap: 8px">
+                <sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+                  <button type="button" aria-pressed="{{c.on}}" onClick="{{c.toggle}}" onPointerDown="{{c.pressStart}}" onPointerUp="{{c.pressEnd}}" onPointerLeave="{{c.pressEnd}}" onContextMenu="{{c.menu}}" style="{{c.style}}">{{c.label}}</button>
+                </sc-for>
+                <button type="button" aria-label="Add person" aria-expanded="{{adding}}" onClick="{{toggleAdding}}" style="width: 44px; height: 44px; border-radius: 22px; border: 1px dashed #8A919C; background: #FFFFFF; color: {{accent}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                  <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                </button>
+              </div>
+              <sc-if value="{{adding}}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; gap: 8px; align-items: flex-end">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+                    <label for="new-person" style="font-size: 12px; font-weight: 600; color: #5F6672">Name or phone number</label>
+                    <input id="new-person" type="text" placeholder="e.g. Meera" value="{{newName}}" onChange="{{setNewName}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+                  </div>
+                  <button type="button" onClick="{{addPerson}}" style="min-height: 46px; padding: 0 16px; border: none; border-radius: 12px; background: #111827; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Add</button>
+                </div>
+              </sc-if>
+            </div>
+
+            <div role="group" aria-label="Split method" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; background: #EDEFF2; border-radius: 12px; padding: 4px">
+              <sc-for list="{{methods}}" as="m" hint-placeholder-count="2">
+                <button type="button" aria-pressed="{{m.on}}" onClick="{{m.pick}}" style="{{m.style}}">{{m.label}}</button>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{isEqual}}" hint-placeholder-val="{{ true }}">
+              <div style="background: #F4F5F7; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px">
+                <sc-for list="{{shares}}" as="s" hint-placeholder-count="3">
+                  <div style="display: flex; justify-content: space-between; align-items: center; min-height: 32px; font-size: 14px">
+                    <span style="color: #3D434D">{{s.label}}</span>
+                    <span style="font-weight: 600; color: {{s.color}}">{{cur}}{{s.amount}}</span>
+                  </div>
+                </sc-for>
+                <div style="height: 1px; background: #D5D8DE; margin: 4px 0"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; min-height: 32px; font-size: 14px; font-weight: 700"><span>{{payerBackLabel}}</span><span style="color: #1E5E2B">{{cur}}{{payerBackF}}</span></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{isManual}}" hint-placeholder-val="{{ false }}">
+              <div style="background: #F4F5F7; border-radius: 14px; padding: 6px 14px 12px; display: flex; flex-direction: column">
+                <sc-for list="{{manualRows}}" as="mr" hint-placeholder-count="3">
+                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px">
+                    <label for="{{mr.id}}" style="font-size: 14px; color: #3D434D">{{mr.label}}</label>
+                    <div style="display: flex; align-items: flex-end; gap: 4px; width: 140px; flex-shrink: 0; border-bottom: 2px solid #8A919C; padding-bottom: 4px">
+                      <span aria-hidden="true" style="font-size: 18px; font-weight: 600; color: #3D434D">{{cur}}</span>
+                      <input id="{{mr.id}}" type="text" inputmode="decimal" placeholder="0" value="{{mr.value}}" onChange="{{mr.change}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: #111827; text-align: right; padding: 0">
+                    </div>
+                  </div>
+                </sc-for>
+                <div style="height: 1px; background: #D5D8DE; margin: 8px 0"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px">
+                  <span style="font-weight: 600">{{manualLabel}}</span>
+                  <span style="font-weight: 700; color: {{manualColor}}">{{cur}}{{manualBalanceF}}</span>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isLent}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <label for="lent-to" style="font-size: 12px; font-weight: 600; color: #5F6672">Who was it for</label>
+              <input id="lent-to" type="text" placeholder="Name or phone number" value="{{lentTo}}" onChange="{{setLentTo}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+            </div>
+            <div style="background: #FFF4E6; border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px">
+              <span style="color: #8A3A00">{{lentLine}}</span>
+              <span style="font-weight: 700">{{cur}}{{amountF}}</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isOwe}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <label for="owe-to" style="font-size: 12px; font-weight: 600; color: #5F6672">Who paid for you</label>
+              <input id="owe-to" type="text" placeholder="Name or phone number" value="{{oweTo}}" onChange="{{setOweTo}}" style="min-height: 46px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 15px; color: #111827; box-sizing: border-box; min-width: 0">
+            </div>
+            <div style="background: #FFF0F0; border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px">
+              <span style="color: #9B1C1C">{{oweLine}}</span>
+              <span style="font-weight: 700">{{cur}}{{amountF}}</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <button type="button" onClick="{{saveExpense}}" style="min-height: 52px; border: none; border-radius: 14px; background: {{accent}}; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">{{saveLabel}}</button>
+      </section>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{removeAsk}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 9; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="rm-h" aria-describedby="rm-d" style="width: 100%; background: #FFFFFF; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 40px rgba(17,24,39,0.25)">
+        <h2 id="rm-h" style="margin: 0; font-size: 18px; font-weight: 700">Remove member</h2>
+        <p id="rm-d" style="margin: 0; font-size: 14px; line-height: 1.5; color: #3D434D">Remove <strong>{{removeName}}</strong> from {{removeWhere}}?</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <button type="button" onClick="{{cancelRemove}}" style="min-height: 48px; border: 1px solid #D5D8DE; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; cursor: pointer">Cancel</button>
+          <button type="button" onClick="{{confirmRemove}}" style="min-height: 48px; border: none; border-radius: 12px; background: #C92A2A; font-family: inherit; font-size: 15px; font-weight: 600; color: #FFFFFF; cursor: pointer">Remove member</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{lock.show}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-modal="true" aria-labelledby="lock-title" style="position: absolute; inset: 0; z-index: 200; background: {{lock.bg}}; color: {{lock.text}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 36px 28px; box-sizing: border-box; font-family: Inter, system-ui, sans-serif">
+      <div aria-hidden="true" style="width: 60px; height: 60px; border-radius: 30px; background: {{lock.accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+        <h2 id="lock-title" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700">{{lock.title}}</h2>
+        <p role="status" style="margin: 0; font-size: 14px; color: {{lock.hintColor}}">{{lock.hint}}</p>
+      </div>
+      <div aria-hidden="true" style="display: flex; gap: 16px">
+        <sc-for list="{{lock.dots}}" as="pd" hint-placeholder-count="4"><span style="{{pd.style}}"></span></sc-for>
+      </div>
+      <sc-if value="{{lock.forgotOpen}}" hint-placeholder-val="{{ false }}">
+        <div style="width: 100%; background: {{lock.surface}}; border: 1px solid {{lock.border}}; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box">
+          <span style="font-size: 15px; font-weight: 700">Forgot your PIN?</span>
+          <span style="font-size: 13px; color: {{lock.muted}}">For your privacy the PIN can’t be recovered. You can erase all data on this device and then restore your latest backup from Profile.</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <button type="button" onClick="{{lock.closeForgot}}" style="min-height: 46px; border: 1px solid {{lock.border}}; border-radius: 12px; background: transparent; color: {{lock.text}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+            <button type="button" onClick="{{lock.eraseAll}}" style="min-height: 46px; border: none; border-radius: 12px; background: {{lock.danger}}; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Erase data</button>
+          </div>
+        </div>
+      </sc-if>
+      <div role="group" aria-label="PIN keypad" style="width: 100%; max-width: 260px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px">
+        <sc-for list="{{lock.keys}}" as="pk" hint-placeholder-count="12">
+          <button type="button" aria-label="{{pk.aria}}" aria-hidden="{{pk.hidden}}" onClick="{{pk.press}}" style="{{pk.style}}">{{pk.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{lock.isUnlock}}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{lock.openForgot}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.accent}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Forgot PIN?</button>
+      </sc-if>
+      <sc-if value="{{lock.canCancel}}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{lock.cancel}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.muted}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#3B5BDB","options":["#3B5BDB","#0B7285","#6741D9","#111827"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      tab: 'Self bills',
+      sheetOpen: false,
+      kinds: { self: false, paid: false, split: true, owe: false },
+      oweTo: '',
+      oweItems: [],
+      groupFilter: 'All',
+      groupPick: '',
+      groupMenu: false,
+      what: '',
+      amount: '2400',
+      payer: 'You',
+      payerExtras: [],
+      payMode: 'Credit',
+      manual: {},
+      removed: [],
+      removeAsk: null,
+      payerAdding: false,
+      payerNew: '',
+      method: 'Equally',
+      picked: {},
+      extraNames: [],
+      adding: false,
+      newName: '',
+      card: 'HDFC •• 4521',
+      lentTo: '',
+      nextId: 100,
+      detail: null,        // { kind: 'self' | 'paid' | 'group', id }
+      editing: false,
+      editForm: {},
+      confirmDelete: false,
+      cardSplits: { 'HDFC •• 4521': 8750, 'ICICI •• 8834': 2000 },
+      // Self bills: your own spending, by card
+      selfItems: [
+        { id: 's1', card: 'HDFC •• 4521', what: 'Amazon', date: '11/11/26', amount: 5600 },
+        { id: 's2', card: 'HDFC •• 4521', what: 'Swiggy & Zomato', date: '20/11/26', amount: 3850 },
+        { id: 's3', card: 'ICICI •• 8834', what: 'Amazon groceries', date: '16/11/26', amount: 4200 },
+        { id: 's4', card: 'ICICI •• 8834', what: 'Fuel', date: '20/11/26', amount: 3100 }
+      ],
+      // Paid for: what you paid on your card for someone else
+      lentItems: [
+        { id: 'p1', who: 'Arun Kumar', what: 'Flight tickets', card: 'HDFC •• 4521', amount: 4000, paid: 1000, date: '08/11/26' },
+        { id: 'p2', who: 'Priya S', what: 'Headphones', card: 'HDFC •• 4521', amount: 2150, paid: 0, date: '03/11/26' },
+        { id: 'p3', who: 'Karthik R', what: 'Concert tickets', card: 'ICICI •• 8834', amount: 3500, paid: 1500, date: '12/11/26' }
+      ],
+      // Split bills: groups and their expenses
+      groupsData: [
+        { id: 'g1', name: 'Goa trip', members: ['You', 'Arun', 'Divya', 'Karthik'], open: true, total: 48600, count: 12, net: 2445, when: '', bal: { Arun: 815, Divya: 415, Karthik: 1215 },
+          expenses: [['Scooter rental', 'You', 4860, '13/11/26'], ['Cab to airport', 'Arun', 1600, '12/11/26'], ['Beach shack dinner', 'Divya', 3200, '11/11/26']] },
+        { id: 'g2', name: 'Flat 3B', members: ['You', 'Priya', 'Meera'], open: true, total: 62400, count: 9, net: -1250, when: '', bal: { Priya: -850, Meera: -400 },
+          expenses: [['Electricity bill', 'Priya', 2550, '15/11/26'], ['Internet', 'Meera', 1200, '05/11/26']] },
+        { id: 'g3', name: 'Office lunches', members: ['You', 'Arun', 'Priya', 'Divya', 'Rahul', 'Sneha'], open: true, total: 7200, count: 5, net: 1700, when: '', bal: { Arun: 400, Priya: 400, Divya: 400, Rahul: 100, Sneha: 400 },
+          expenses: [['Team dinner', 'You', 2400, '19/11/26'], ['Pizza Friday', 'Rahul', 1800, '14/11/26']] },
+        { id: 'g4', name: 'Pondicherry weekend', members: ['You', 'Arun', 'Karthik', 'Divya', 'Nisha'], open: false, total: 18900, count: 9, net: 0, when: 'Sep',
+          expenses: [['Resort stay', 'You', 12500, '14/09/26'], ['Fuel', 'Arun', 3400, '14/09/26']] },
+        { id: 'g5', name: 'Priya’s birthday', members: ['You', 'Priya', 'Arun', 'Divya', 'Karthik', 'Meera', 'Rahul'], open: false, total: 9400, count: 4, net: 0, when: 'Aug',
+          expenses: [['Cake & decor', 'Priya', 4200, '23/08/26'], ['Dinner', 'You', 5200, '23/08/26']] }
+      ],
+      // Cards from the Cards screen (kept in sync when the browser allows saved data)
+      cardsList: [
+        { id: 'hdfc', name: 'HDFC Regalia', type: 'Credit', last4: '4521', due: 5 },
+        { id: 'icici', name: 'ICICI Amazon Pay', type: 'Credit', last4: '8834', due: 12 },
+        { id: 'sbi', name: 'SBI Savings', type: 'Debit', last4: '1209' },
+        { id: 'axis', name: 'Axis Salary', type: 'Debit', last4: '7710' }
+      ]
+    };
+  }
+  _loadPrefs() {
+    // theme, accent and currency chosen on the Profile screen
+    try {
+      var p = JSON.parse(window.localStorage.getItem('expenseTracker.prefs') || 'null') || {};
+      try { p.systemDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); } catch (e2) {}
+      this.setState({ prefs: p });
+    } catch (e) {}
+  }
+  componentDidMount() {
+    this.lockMount();
+    var selfP = this;
+    var clockSelf = this;
+    this._clock = setInterval(function () { clockSelf.setState({ now: Date.now() }); }, 30000);
+    this._loadPrefs();
+    this._onPrefs = function (ev) { if (!ev || ev.key === 'expenseTracker.prefs') selfP._loadPrefs(); };
+    try { window.addEventListener('storage', this._onPrefs); } catch (e) {}
+
+    // Restore everything saved on this screen, and pick up the current cards
+    var self = this;
+    try {
+      var full = JSON.parse(window.localStorage.getItem('expenseTracker.sharedFull') || 'null');
+      if (full && typeof full === 'object') this.setState(full);
+    } catch (e) {}
+    var loadCards = function () {
+      try {
+        var cards = JSON.parse(window.localStorage.getItem('expenseTracker.cards') || 'null');
+        if (Array.isArray(cards)) self.setState({ cardsList: cards });
+      } catch (e) {}
+    };
+    loadCards();
+    this._onStorage = function (ev) { if (!ev || ev.key === 'expenseTracker.cards') loadCards(); };
+    try { window.addEventListener('storage', this._onStorage); } catch (e) {}
+  }
+  // ---- App lock (4-digit PIN). Turned on/off in Profile › App lock. Stored only on this device as a salted hash.
+  lockHash(pin, salt) {
+    var h = 2166136261, str = salt + ':' + pin;
+    for (var r = 0; r < 500; r++) { for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } str = h.toString(16) + str.slice(0, 12); }
+    return h.toString(16);
+  }
+  lockRead() { try { return JSON.parse(window.localStorage.getItem('expenseTracker.lock') || 'null'); } catch (e) { return null; } }
+  lockInit() {
+    var lk = this.lockRead(), unlocked = false;
+    try { unlocked = window.sessionStorage.getItem('expenseTracker.unlocked') === '1'; } catch (e) {}
+    var on = !!(lk && lk.on && lk.h);
+    var p = { lockOn: on };
+    if (!on) { p.locked = false; if ((this.state || {}).pinMode === 'unlock') p.pinMode = null; }
+    else if (!unlocked) { p.locked = true; p.pinMode = 'unlock'; p.pinEntry = ''; p.pinErr = ''; }
+    else if ((this.state || {}).pinMode === 'unlock') { p.locked = false; p.pinMode = null; }
+    this.setState(p);
+  }
+  lockMount() {
+    var self = this;
+    this.lockInit();
+    this._onLock = function (ev) { if (!ev || ev.key === 'expenseTracker.lock' || ev.key === 'expenseTracker.unlockPing' || ev.key === 'expenseTracker.unlocked') self.lockInit(); };
+    // lock again when the app goes to the background
+    this._onHide = function () {
+      if (document.visibilityState === 'hidden' && (self.state || {}).lockOn) {
+        try { window.sessionStorage.removeItem('expenseTracker.unlocked'); } catch (e) {}
+        self.setState({ locked: true, pinMode: 'unlock', pinEntry: '', pinErr: '' });
+      }
+    };
+    try { window.addEventListener('storage', this._onLock); document.addEventListener('visibilitychange', this._onHide); } catch (e) {}
+  }
+  lockUnmount() { try { window.removeEventListener('storage', this._onLock); document.removeEventListener('visibilitychange', this._onHide); } catch (e) {} }
+  markUnlocked() {
+    try { window.sessionStorage.setItem('expenseTracker.unlocked', '1'); window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now())); } catch (e) {}
+  }
+  pinDone(pin) {
+    var self = this, mode = (this.state || {}).pinMode, lk = this.lockRead();
+    var ok = function () { return lk && lk.h === self.lockHash(pin, lk.s); };
+    if (mode === 'unlock') {
+      if (ok()) { this.markUnlocked(); this.setState({ locked: false, pinMode: null, pinEntry: '', pinErr: '' }); }
+      else this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' });
+    } else if (mode === 'set') {
+      this.setState({ pinMode: 'confirm', pinFirst: pin, pinEntry: '', pinErr: '' });
+    } else if (mode === 'confirm') {
+      if (pin !== (this.state || {}).pinFirst) { this.setState({ pinMode: 'set', pinFirst: '', pinEntry: '', pinErr: 'PINs didn’t match. Start again.' }); return; }
+      var salt = Math.random().toString(36).slice(2, 10);
+      try { window.localStorage.setItem('expenseTracker.lock', JSON.stringify({ on: true, s: salt, h: this.lockHash(pin, salt) })); } catch (e) {}
+      this.markUnlocked();
+      this.setState({ lockOn: true, pinMode: null, pinFirst: '', pinEntry: '', pinErr: '', lockToast: 'App lock is on' });
+    } else if (mode === 'off' || mode === 'change') {
+      if (!ok()) { this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' }); return; }
+      if (mode === 'change') { this.setState({ pinMode: 'set', pinEntry: '', pinErr: '' }); return; }
+      try { window.localStorage.removeItem('expenseTracker.lock'); } catch (e) {}
+      this.setState({ lockOn: false, pinMode: null, pinEntry: '', pinErr: '', lockToast: 'App lock is off' });
+    }
+  }
+  lockVals(accent, c) {
+    var self = this, mode = (this.state || {}).pinMode, entry = (this.state || {}).pinEntry || '';
+    var titles = { unlock: 'Enter your PIN', set: 'Create a 4-digit PIN', confirm: 'Re-enter your PIN', off: 'Enter PIN to turn off app lock', change: 'Enter your current PIN' };
+    var hints = { unlock: 'Your expense data is locked', set: 'You’ll need it every time you open the app', confirm: 'Type the same PIN again', off: 'App lock will be turned off', change: 'Then choose a new PIN' };
+    var press = function (k) {
+      return function () {
+        var e = (self.state || {}).pinEntry || '';
+        if (k === 'del') { self.setState({ pinEntry: e.slice(0, -1), pinErr: '' }); return; }
+        if (e.length >= 4) return;
+        e += k; self.setState({ pinEntry: e, pinErr: '' });
+        if (e.length === 4) setTimeout(function () { self.pinDone(e); }, 120);
+      };
+    };
+    var keyStyle = 'height: 64px; border-radius: 32px; border: none; background: ' + c.key + '; color: ' + c.text + '; font-family: inherit; font-size: 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center';
+    var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map(function (k) {
+      return { label: k === 'del' ? '⌫' : k, aria: k === 'del' ? 'Delete digit' : (k || 'blank'), press: k ? press(k) : null, hidden: !k,
+        style: k ? (k === 'del' ? keyStyle.replace('background: ' + c.key, 'background: transparent') : keyStyle) : keyStyle + '; visibility: hidden' };
+    });
+    return {
+      show: !!mode && (mode !== 'unlock' || !!(this.state || {}).locked),
+      title: titles[mode] || '', hint: (this.state || {}).pinErr || hints[mode] || '',
+      hintColor: (this.state || {}).pinErr ? c.danger : c.muted,
+      dots: [0, 1, 2, 3].map(function (i) { var f = i < entry.length; return { style: 'width: 14px; height: 14px; border-radius: 7px; border: 2px solid ' + (f ? accent : c.muted) + '; background: ' + (f ? accent : 'transparent') }; }),
+      keys: keys,
+      canCancel: mode !== 'unlock',
+      isUnlock: mode === 'unlock' && !(this.state || {}).forgotOpen,
+      cancel: function () { self.setState({ pinMode: null, pinEntry: '', pinErr: '', pinFirst: '' }); },
+      forgotOpen: !!(this.state || {}).forgotOpen,
+      openForgot: function () { self.setState({ forgotOpen: true }); },
+      closeForgot: function () { self.setState({ forgotOpen: false }); },
+      eraseAll: function () {
+        // the only way past a forgotten PIN: wipe this device's data, then restore a backup from Profile
+        try {
+          var ks = []; for (var i = 0; i < window.localStorage.length; i++) { var k = window.localStorage.key(i); if (k && k.indexOf('expenseTracker.') === 0) ks.push(k); }
+          ks.forEach(function (k) { window.localStorage.removeItem(k); });
+          window.sessionStorage.removeItem('expenseTracker.unlocked');
+          window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now()));
+        } catch (e) {}
+        try { window.location.reload(); } catch (e) {}
+      },
+      bg: c.bg, text: c.text, muted: c.muted, accent: accent, danger: c.danger, surface: c.surface, border: c.border
+    };
+  }
+  componentWillUnmount() {
+    this.lockUnmount();
+    clearInterval(this._clock); try { window.removeEventListener('storage', this._onStorage); } catch (e) {} }
+  componentDidUpdate() {
+    // Publish this screen's data so the Cards and Budget screens update with every add, edit and delete
+    var st = this.state;
+    var full = { selfItems: st.selfItems, lentItems: st.lentItems, groupsData: st.groupsData, oweItems: st.oweItems || [], cardSplits: st.cardSplits };
+    var json = JSON.stringify(full);
+    if (json === this._lastShared) return;
+    this._lastShared = json;
+    var groups = st.groupsData.map(function (g) {
+      var payer = null;
+      g.expenses.forEach(function (e) { if (!payer && e[1] !== 'You') payer = e[1]; });
+      return { id: g.id, name: g.name, net: g.net, bal: g.bal || {} };
+    });
+    var summary = { selfItems: st.selfItems, lentItems: st.lentItems, cardSplits: st.cardSplits, oweItems: st.oweItems || [], groups: groups };
+    try {
+      window.localStorage.setItem('expenseTracker.sharedFull', json);
+      window.localStorage.setItem('expenseTracker.shared', JSON.stringify(summary));
+    } catch (e) {}
+  }
+  renderVals() {
+    var self = this;
+    // device date & time (re-read every 30 seconds so the app follows the phone's clock, time zone and month changes)
+    var NOW = new Date(this.state.now || Date.now());
+    var MSH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var MLONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var nextDue = function (d) { var y = NOW.getFullYear(), m = NOW.getMonth(); if (NOW.getDate() > d) { m++; if (m > 11) { m = 0; y++; } } return d + ' ' + MSH[m]; };
+    var ddmmyy = function (dt) { return ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + '/' + String(dt.getFullYear()).slice(-2); };
+    var accent = this.props.accent ?? '#3B5BDB';
+    var P = this.state.prefs || {};
+    if (P.accent) accent = P.accent;      // accent colour chosen in Profile
+    var CUR = { INR: ['₹', 'en-IN'], USD: ['$', 'en-US'], EUR: ['€', 'en-IE'], GBP: ['£', 'en-GB'], AED: ['AED ', 'en-US'], SGD: ['S$', 'en-SG'] }[P.currency || 'INR'] || ['₹', 'en-IN'];
+    var C = CUR[0];                        // currency symbol chosen in Profile
+    var darkMode = P.theme === 'Dark' || (P.theme === 'System' && !!P.systemDark);
+    var fmt = function (n) { return Number(n || 0).toLocaleString(CUR[1], { maximumFractionDigits: 2 }); };
+    var dec = function (s) { var t = String(s).replace(/[^0-9.]/g, ''); var i = t.indexOf('.'); if (i !== -1) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/\./g, '').slice(0, 2); return t; };  // numbers with up to 2 decimals
+    var num = function (s) { var n = parseFloat(String(s).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; };
+    var pill = function (on) {
+      return 'min-height: 44px; padding: 0 16px; border-radius: 22px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid ' + (on ? '#111827' : '#D5D8DE') + '; background: ' + (on ? '#111827' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#111827');
+    };
+    var seg = function (on) {
+      return 'min-height: 40px; border: none; border-radius: 9px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; background: ' + (on ? '#FFFFFF' : 'transparent') + '; color: ' + (on ? '#111827' : '#4B5260') + '; box-shadow: ' + (on ? '0 1px 2px rgba(17,24,39,0.12)' : 'none');
+    };
+    var green = '#1E5E2B', red = '#9B1C1C', grey = '#5F6672';
+    var cardTag = 'flex-shrink: 0; padding: 2px 7px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #FFF4E6; color: #8A3A00';
+    var splitTag = 'flex-shrink: 0; padding: 2px 7px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #E7EBFB; color: #2F4AB8';
+
+    // ---- Data (all kept in state so items can be opened, edited and deleted) ----
+    var st = this.state;
+    var keyOf = function (c) { return String(c.name).trim().split(/\s+/)[0] + ' •• ' + c.last4; };
+    var cardsList = st.cardsList || [];
+    var cardKeys = cardsList.map(keyOf);
+    var payOptions = cardKeys.concat(['Cash']);
+    var creditKeys = cardsList.filter(function (c) { return c.type === 'Credit'; }).map(keyOf);
+    var isCredit = function (k) { return creditKeys.indexOf(k) !== -1; };
+    var lent = st.lentItems;
+    // Split balances you owe / are owed (from groups)
+    var fromCards = 0, paidBack = 0, fromSplits = 0, youOwe = 0;
+    lent.forEach(function (l) { fromCards += Math.max(0, l.amount - l.paid); paidBack += l.paid; });
+    // per-person balances in each group: + they owe you, − you owe them
+    st.groupsData.forEach(function (g) { Object.keys(g.bal || {}).forEach(function (m) { var b = g.bal[m]; if (b > 0) fromSplits += b; else youOwe += -b; }); });
+    (st.oweItems || []).forEach(function (w) { youOwe += w.amount; });
+    var initialsOf = function (n) {
+      var p = String(n).trim().split(/\s+/);
+      return ((p[0] || '?').charAt(0) + (p[1] ? p[1].charAt(0) : '')).toUpperCase();
+    };
+    var openDetail = function (kind, id) { self.setState({ detail: { kind: kind, id: id }, editing: false, confirmDelete: false, editForm: {} }); };
+
+    var allGroups = st.groupsData.map(function (g) {
+      var balance, color;
+      if (!g.open && g.net === 0) { balance = 'Settled up'; color = grey; }
+      else if (g.net > 0) { balance = 'you are owed ' + C + '' + fmt(g.net); color = green; }
+      else if (g.net < 0) { balance = 'you owe ' + C + '' + fmt(-g.net); color = red; }
+      else { balance = 'All square'; color = grey; }
+      var tints = { g1: '#E6FCF5', g2: '#E7EBFB', g3: '#FFF4E6' };
+      return {
+        id: g.id, name: g.name, members: g.members, open: g.open, total: g.total,
+        meta: g.members.length + ' people · ' + g.count + ' expenses' + (g.when ? ' · ' + g.when : ''),
+        balance: balance, color: color, tint: g.open ? (tints[g.id] || '#E7EBFB') : '#EDEFF2'
+      };
+    });
+    var gFilter = this.state.groupFilter;
+    var openCount = allGroups.filter(function (g) { return g.open; }).length;
+    var groups = allGroups.filter(function (g) {
+      if (gFilter === 'Groups') return false;
+      return gFilter === 'All' || (gFilter === 'Open' ? g.open : !g.open);
+    }).map(function (g) {
+      return Object.assign({}, g, {
+        totalF: fmt(g.total),
+        status: g.open ? 'Open' : 'Closed',
+        aria: g.name + ', ' + (g.open ? 'open' : 'closed') + ', total ' + C + '' + fmt(g.total) + '. Open details',
+        open: function () { openDetail('group', g.id); },
+        badgeStyle: 'flex-shrink: 0; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; ' + (g.open ? 'background: #E6FCF5; color: #0B5D4B' : 'background: #EDEFF2; color: #4B5260'),
+        cardStyle: 'width: 100%; border: none; text-align: left; font-family: inherit; color: #111827; cursor: pointer; background: #FFFFFF; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; ' + (g.open ? '' : 'opacity: 0.8')
+      });
+    });
+
+    // Self bills grouped by card (your share of split bills is added on the two credit cards)
+    var cardInfo = cardsList.map(function (c) {
+      var k = keyOf(c);
+      return { key: k, name: c.name + ' •• ' + c.last4, due: c.type === 'Credit' ? (c.due ? 'Due ' + nextDue(c.due) : 'Credit card') : 'Debit card', split: st.cardSplits[k] || 0, credit: c.type === 'Credit' };
+    }).concat([{ key: 'Cash', name: 'Cash', due: 'Paid in cash', split: 0, credit: false }]);
+    var billMine = 0, billOthers = 0;
+    var selfCards = cardInfo.map(function (c) {
+      var items = st.selfItems.filter(function (i) { return i.card === c.key; });
+      var t = c.split;
+      items.forEach(function (i) { t += i.amount; });
+      if (isCredit(c.key)) billMine += t;
+      return {
+        key: c.key, name: c.name, due: c.due, split: c.split, splitF: fmt(c.split), hasSplit: c.split > 0,
+        totalF: fmt(t), empty: items.length === 0, show: c.credit || items.length > 0 || c.split > 0,
+        openSplit: function () { openDetail('csplit', c.key); },
+        items: items.map(function (i) {
+          return {
+            what: i.what, date: i.date, amountF: fmt(i.amount),
+            aria: i.what + ', ' + C + '' + fmt(i.amount) + ', ' + i.date + '. Open details',
+            open: function () { openDetail('self', i.id); }
+          };
+        })
+      };
+    }).filter(function (c) { return c.show; });
+    lent.forEach(function (l) { if (isCredit(l.card)) billOthers += l.amount; });
+
+    // ---- Detail view ----
+    var det = st.detail;
+    var dItem = null;
+    if (det) {
+      var src = det.kind === 'self' ? st.selfItems : (det.kind === 'paid' ? st.lentItems : (det.kind === 'owe' ? (st.oweItems || []) : st.groupsData));
+      src.forEach(function (x) { if (x.id === det.id) dItem = x; });
+      if (det.kind === 'csplit' && st.cardSplits[det.id]) dItem = { id: det.id, amount: st.cardSplits[det.id] };
+    }
+    var gExp = (dItem && det.kind === 'gexp') ? dItem.expenses[det.idx] : null;
+    if (det && det.kind === 'gexp' && !gExp) dItem = null;
+    var rowsOf = function (pairs) {
+      return pairs.map(function (p, i) { return { label: p[0], value: p[1], border: i === 0 ? 'none' : '1px solid #EDEFF2' }; });
+    };
+    var dt = { showBig: false, kindLabel: '', title: '', bigLabel: '', bigF: '0', sub: '', subColor: '#C7CCD6', rows: [], hasList: false, listTitle: '', list: [] };
+    var editDefs = [];
+    if (dItem && det.kind === 'self') {
+      dt = { kindLabel: 'Self bill', title: dItem.what, bigLabel: 'Amount', bigF: fmt(dItem.amount), sub: dItem.card === 'Cash' ? 'Paid in cash' : 'On ' + dItem.card, subColor: '#C7CCD6',
+        rows: rowsOf([['Expense', dItem.what], ['Paid with', dItem.card], ['Date', dItem.date], ['Type', 'Just for you']]), hasList: false, listTitle: '', list: [] };
+      editDefs = [['what', 'Expense name', 'name'], ['kind', 'Type of expense', 'kind'], ['amount', 'Amount (' + C + ')', 'numeric'], ['card', 'Paid with', 'choice', payOptions], ['date', 'Date (DD/MM/YY)', 'date']];
+    } else if (dItem && det.kind === 'owe') {
+      // Someone paid for you: you owe them
+      dt = { kindLabel: 'You owe', title: dItem.what + ' · ' + dItem.who, bigLabel: 'You owe ' + dItem.who, bigF: fmt(dItem.amount), sub: '', subColor: '#FFB3B3',
+        rows: rowsOf([['Paid by', dItem.who], ['What for', dItem.what], ['Amount', '' + C + '' + fmt(dItem.amount)], ['Date', dItem.date]]), hasList: false, listTitle: '', list: [] };
+      editDefs = [['what', 'Expense name', 'name'], ['kind', 'Type of expense', 'kind'], ['amount', 'Amount (' + C + ')', 'numeric'], ['who', 'Who paid for you', 'text'], ['date', 'Date (DD/MM/YY)', 'date']];
+    } else if (dItem && det.kind === 'paid') {
+      var due = Math.max(0, dItem.amount - dItem.paid);
+      dt = { kindLabel: 'Paid for', title: dItem.what + ' · ' + dItem.who, bigLabel: dItem.who + ' owes you', bigF: fmt(due),
+        sub: '' + C + '' + fmt(dItem.paid) + ' of ' + C + '' + fmt(dItem.amount) + ' paid back', subColor: '#A7E3B5',
+        rows: rowsOf([['Paid for', dItem.who], ['What for', dItem.what], ['Amount you paid', '' + C + '' + fmt(dItem.amount)], ['Paid back', '' + C + '' + fmt(dItem.paid)], ['Paid with', dItem.card], ['Date', dItem.date]]),
+        hasList: false, listTitle: '', list: [] };
+      editDefs = [['what', 'Expense name', 'name'], ['kind', 'Type of expense', 'kind'], ['amount', 'Amount (' + C + ')', 'numeric'], ['card', 'Paid with', 'choice', payOptions], ['who', 'Who was it for', 'text'], ['paid', 'Paid back so far (' + C + ')', 'numeric']];
+    } else if (dItem && det.kind === 'group') {
+      var gv = null;
+      allGroups.forEach(function (g) { if (g.id === dItem.id) gv = g; });
+      dt = { showBig: true, kindLabel: 'Split group · ' + (dItem.open ? 'Open' : 'Closed'), title: dItem.name, bigLabel: 'Total expense', bigF: fmt(dItem.total),
+        sub: gv ? gv.balance.charAt(0).toUpperCase() + gv.balance.slice(1) : '', subColor: dItem.net > 0 ? '#A7E3B5' : (dItem.net < 0 ? '#FFB3B3' : '#C7CCD6'),
+        rows: rowsOf([['Members', dItem.members.join(', ')], ['Expenses', String(dItem.count)], ['Status', dItem.open ? 'Open' : 'Closed']]),
+        hasList: dItem.expenses.length > 0, listTitle: 'Expenses · tap one for details',
+        list: dItem.expenses.map(function (e, i) {
+          return {
+            what: e[0], meta: 'Paid by ' + (e[1] === 'You' ? 'you' : e[1]) + ' · ' + e[3], amountF: fmt(e[2]),
+            aria: e[0] + ', ' + C + '' + fmt(e[2]) + '. Open details',
+            open: function () { self.setState({ detail: { kind: 'gexp', id: dItem.id, idx: i }, editing: false, confirmDelete: false, editForm: {} }); }
+          };
+        }) };
+      editDefs = [['name', 'Group name', 'name'], ['members', 'Members', 'members'], ['closed', 'Mark group as closed', 'check']];
+    } else if (dItem && det.kind === 'csplit') {
+      // Your share of split bills charged to this card
+      var gList = [];
+      st.groupsData.forEach(function (g) { g.expenses.forEach(function (e) { if (e[1] === 'You' && g.open) gList.push({ what: e[0], meta: g.name + ' · ' + e[3], amountF: fmt(e[2] / Math.max(1, g.members.length)), aria: e[0], open: null }); }); });
+      dt = { kindLabel: 'Split share', title: 'Your share of split bills', bigLabel: 'On ' + det.id, bigF: fmt(dItem.amount), sub: 'Counted in this card’s bill', subColor: '#C7CCD6',
+        rows: rowsOf([['Card', det.id], ['Your share', '' + C + '' + fmt(dItem.amount)], ['Type', 'Split bills']]),
+        hasList: gList.length > 0, listTitle: 'Split bills you paid (your share each)', list: gList };
+      editDefs = [['amount', 'Your share (' + C + ')', 'numeric'], ['card', 'Charged to', 'choice', creditKeys]];
+    } else if (dItem && det.kind === 'gexp') {
+      // One split expense inside a group: full breakdown of who owes what
+      var n = Math.max(1, dItem.members.length), youPaidIt = gExp[1] === 'You';
+      var byShares = gExp[5] === 'By shares', savedShares = gExp[6] || {};
+      var shareOf = function (m) { return byShares ? num(savedShares[m]) : gExp[2] / n; };
+      var share = shareOf('You');
+      dt = { kindLabel: 'Split expense · ' + dItem.name, title: gExp[0], bigLabel: 'Total bill', bigF: fmt(gExp[2]),
+        sub: youPaidIt ? 'You get back ' + C + '' + fmt(gExp[2] - share) : 'You owe ' + gExp[1] + ' ' + C + '' + fmt(share),
+        subColor: youPaidIt ? '#A7E3B5' : '#FFB3B3',
+        rows: rowsOf([['Expense', gExp[0]], ['Group', dItem.name], ['Paid by', youPaidIt ? 'You' : gExp[1]], ['Date', gExp[3]], ['Split', byShares ? 'By shares' : 'Equally between ' + n], ['Mode of payment', youPaidIt ? (gExp[4] || 'Credit') : '—'], ['Your share', '' + C + '' + fmt(share)]]),
+        hasList: false, listTitle: 'Each person’s share',   // shares are shown in the Split section of the form instead
+        list: dItem.members.map(function (m) {
+          return { what: m + (m === gExp[1] ? ' (paid)' : ''), meta: m === gExp[1] ? 'Paid the bill' : 'Owes ' + (gExp[1] === 'You' ? 'you' : gExp[1]), amountF: fmt(shareOf(m)), aria: m + ' share ' + C + '' + fmt(shareOf(m)), open: function () {} };
+        }) };
+      editDefs = [['what', 'Expense name', 'name'], ['kind', 'Type of expense', 'kind'], ['amount', 'Amount (' + C + ')', 'numeric'], ['payer', 'Paid by', 'choice', dItem.members.slice()], ['mode', 'Mode of payment', 'choice', ['Credit', 'Debit', 'Cash']], ['split', 'Split', 'split'], ['date', 'Date (DD/MM/YY)', 'date']];
+    }
+    // The details screen is an editable form (like Add expense) pre-filled with the item's current values
+    var baseForm = {};
+    if (dItem) {
+      if (det.kind === 'self') baseForm = { what: dItem.what, amount: String(dItem.amount), card: dItem.card, date: dItem.date };
+      else if (det.kind === 'paid') baseForm = { who: dItem.who, what: dItem.what, amount: String(dItem.amount), paid: String(dItem.paid), card: dItem.card };
+      else if (det.kind === 'csplit') baseForm = { amount: String(dItem.amount), card: det.id };
+      else if (det.kind === 'owe') baseForm = { what: dItem.what, amount: String(dItem.amount), who: dItem.who, date: dItem.date };
+      else if (det.kind === 'gexp') baseForm = { what: gExp[0], amount: String(gExp[2]), payer: gExp[1], date: gExp[3], mode: gExp[4] || 'Credit', method: gExp[5] || 'Equally', shares: Object.assign({}, gExp[6] || {}) };
+      else baseForm = { name: dItem.name, members: dItem.members.slice(), closed: !dItem.open };
+    }
+    self._baseForm = baseForm;
+    var ef = Object.assign({}, baseForm, st.editForm || {});
+    var kindOf = { self: 'Self bills', paid: 'Paid for', gexp: 'Split bills', owe: 'Owe to' };
+    var setEF = function (k, v) { var n = Object.assign({}, self.state.editForm); n[k] = v; self.setState({ editForm: n }); };
+    // Mode of payment only shows when you paid the bill
+    editDefs = editDefs.filter(function (d) { return d[0] !== 'mode' || ef.payer === 'You'; });
+    // Split section (Equally / By shares) for a split expense
+    var splitMembers = (dItem && det.kind === 'gexp') ? dItem.members : [];
+    var splitAmt = num(ef.amount), splitN = Math.max(1, splitMembers.length);
+    var sh = ef.shares || {}, shSum = 0;
+    var splitRows = splitMembers.map(function (m) {
+      shSum += num(sh[m]);
+      return {
+        label: m + (m === ef.payer ? ' (paid)' : ''), id: 'eshare-' + String(m).replace(/[^A-Za-z0-9]/g, ''),
+        equalF: fmt(splitAmt / splitN), value: sh[m] || '',
+        change: function (ev) { var nx = Object.assign({}, ef.shares || {}); nx[m] = dec(ev.target.value); setEF('shares', nx); }
+      };
+    });
+    var shLeft = splitAmt - shSum;
+    var editFields = editDefs.map(function (d) {
+      return {
+        id: 'edit-' + d[0], label: d[1], value: ef[d[0]] == null ? '' : String(ef[d[0]]),
+        mode: d[2] === 'numeric' ? 'decimal' : (d[2] === 'date' ? 'numeric' : 'text'), isText: d[2] === 'text' || d[2] === 'numeric' || d[2] === 'date', placeholder: d[2] === 'date' ? 'DD/MM/YY' : '', isName: d[2] === 'name', isKind: d[2] === 'kind', isCheck: d[2] === 'check', isMembers: d[2] === 'members', isChoice: d[2] === 'choice', isSplitEdit: d[2] === 'split', checked: !!ef[d[0]],
+        splitTabs: ['Equally', 'By shares'].map(function (t) { var on = (ef.method || 'Equally') === t; return { label: t, on: on, style: seg(on), pick: function () { setEF('method', t); } }; }),
+        splitEqual: (ef.method || 'Equally') === 'Equally', splitManual: ef.method === 'By shares', splitRows: splitRows,
+        splitBalLabel: shLeft === 0 ? 'Balance' : (shLeft > 0 ? 'Remaining to assign' : 'Exceeded by'),
+        splitBalF: fmt(Math.abs(shLeft)), splitBalColor: shLeft === 0 ? '#1E5E2B' : (shLeft > 0 ? '#8A3A00' : '#B42318'),
+        // single choice shown as checkboxes: ticking one clears the others
+        options: d[2] === 'kind'
+          ? ['Self bills', 'Paid for', 'Split bills', 'Owe to'].map(function (o) { var on = kindOf[det.kind] === o; return { label: o, on: on, disabled: !on, color: on ? '#111827' : '#5F6672' }; })
+          : (d[3] || []).map(function (o) { return { label: o, on: ef[d[0]] === o, pick: function () { setEF(d[0], o); } }; }),
+        change: function (ev) {
+          var v = ev.target.value;
+          if (d[2] === 'numeric') v = dec(v);
+          if (d[2] === 'date') {
+            // DD/MM/YY: keep digits and add the slashes automatically
+            var dg = String(v).replace(/[^0-9]/g, '').slice(0, 6);
+            v = dg.length > 4 ? dg.slice(0, 2) + '/' + dg.slice(2, 4) + '/' + dg.slice(4) : (dg.length > 2 ? dg.slice(0, 2) + '/' + dg.slice(2) : dg);
+          }
+          setEF(d[0], v);
+        },
+        toggle: function () { setEF(d[0], !self.state.editForm[d[0]]); }
+      };
+    });
+    // What one split expense adds to a group's balance (and who owes you because of it)
+    var expEffect = function (e, groupMembers) {
+      var members = e[7] || groupMembers;      // people this bill was split between
+      var amt = e[2], n = Math.max(1, members.length), byS = e[5] === 'By shares', sh = e[6] || {};
+      var shareOf = function (m) { return byS ? num(sh[m]) : amt / n; };
+      var d = {};
+      if (e[1] === 'You') members.forEach(function (m) { if (m !== 'You') d[m] = shareOf(m); });
+      else if (members.indexOf('You') !== -1) d[e[1]] = -shareOf('You');
+      return d;
+    };
+    var applyEffect = function (g, d, sign) {
+      var bal = Object.assign({}, g.bal || {}), net = 0;
+      Object.keys(d).forEach(function (m) {
+        var v = Math.round(((bal[m] || 0) + sign * d[m]) * 100) / 100;
+        if (Math.abs(v) < 0.01) delete bal[m]; else bal[m] = v;
+      });
+      Object.keys(bal).forEach(function (m) { net += bal[m]; });
+      return { bal: bal, net: Math.round(net * 100) / 100 };
+    };
+    var replaceIn = function (listKey, id, fn) {
+      var next = self.state[listKey].map(function (x) { return x.id === id ? fn(x) : x; });
+      var o = {}; o[listKey] = next; return o;
+    };
+    var listKeyOf = function (kind) { return kind === 'self' ? 'selfItems' : (kind === 'paid' ? 'lentItems' : (kind === 'owe' ? 'oweItems' : 'groupsData')); };
+    // the share rows inside a single expense aren't tappable
+    if (det && det.kind === 'gexp') dt.list.forEach(function (li) { li.open = null; });
+
+    var groupMembers = {};
+    st.groupsData.forEach(function (g) { groupMembers[g.name] = g.members; });
+    var groupName = String(this.state.groupPick || '').trim();
+    var hasGroup = groupName !== '';
+    // Existing group → its members; new or no group → "You" plus people you add with "+"
+    var baseMembers = groupMembers[groupName] || ['You'];
+    var removed = this.state.removed || [];
+    var names = baseMembers.concat(this.state.extraNames.filter(function (n) { return baseMembers.indexOf(n) === -1; }))
+      .filter(function (n) { return removed.indexOf(n) === -1; });
+    var picked = this.state.picked;
+    var inSplit = names.filter(function (n) { return picked[n] !== false; });
+    var amount = num(this.state.amount);
+    var count = Math.max(1, inSplit.length);
+    var weights = { You: 1, Arun: 1, Priya: 1, Divya: 1, Karthik: 1 };
+    if (this.state.method === 'By shares') { weights = { You: 2, Arun: 1, Priya: 1, Divya: 2, Karthik: 1 }; }
+    var w = function (n) { return weights[n] || 1; };
+    var totalW = 0;
+    inSplit.forEach(function (n) { totalW += w(n); });
+    var payer = this.state.payer;
+    var payerBack = 0;
+    var shares = inSplit.map(function (n) {
+      var share = totalW ? amount * w(n) / totalW : 0;
+      var label, color;
+      // Just the person's name; the one who paid gets "(paid)"
+      label = n + (n === payer ? ' (paid)' : '');
+      color = '#111827';
+      if (n !== payer) payerBack += share;
+      return { label: label, amount: fmt(share), color: color };
+    });
+    var gq = String(this.state.groupPick).trim().toLowerCase();
+    // A group already picked shows the full list again (so you can switch); typed text filters it
+    var exactPick = allGroups.some(function (g) { return g.name === self.state.groupPick; });
+    var groupMatches = allGroups.filter(function (g) {
+      return exactPick || !gq || g.name.toLowerCase().indexOf(gq) !== -1;
+    });
+    // "By shares": type each person's amount; the balance shows what's left (or how much it's over)
+    var manual = this.state.manual || {};
+    var manualSum = 0;
+    var manualRows = inSplit.map(function (n) {
+      manualSum += num(manual[n]);
+      return {
+        id: 'share-' + String(n).replace(/[^A-Za-z0-9]/g, ''),
+        label: n + (n === payer ? ' (paid)' : ''),
+        value: manual[n] || '',
+        change: function (ev) {
+          var next = Object.assign({}, self.state.manual || {});
+          next[n] = dec(ev.target.value);
+          self.setState({ manual: next });
+        }
+      };
+    });
+    var manualLeft = amount - manualSum;
+    var kindFlags = this.state.kinds || {};
+    var isSplit = !!kindFlags.split;
+    var isLent = !!kindFlags.paid;
+    var tab = this.state.tab;
+    var lentName = String(this.state.lentTo).trim();
+
+    var saveNow = function () {
+        var f = Object.assign({}, self._baseForm, self.state.editForm), k = det.kind;
+        if (k === 'csplit') {
+          var cs = Object.assign({}, self.state.cardSplits);
+          var target = f.card || det.id, amtS = num(f.amount);
+          delete cs[det.id];
+          cs[target] = (target === det.id ? 0 : (cs[target] || 0)) + amtS;
+          self.setState({ cardSplits: cs, editing: false, editForm: {}, detail: null });
+          return;
+        }
+        var patch = replaceIn(listKeyOf(k), det.id, function (x) {
+          if (k === 'self') return Object.assign({}, x, { what: f.what || x.what, amount: num(f.amount), card: f.card || x.card, date: f.date || x.date });
+          if (k === 'owe') return Object.assign({}, x, { what: f.what || x.what, amount: num(f.amount), who: String(f.who || '').trim() || x.who, date: f.date || x.date });
+          if (k === 'paid') return Object.assign({}, x, { who: f.who || x.who, what: f.what || x.what, amount: num(f.amount), paid: Math.min(num(f.paid), num(f.amount)), card: f.card || x.card });
+          if (k === 'gexp') {
+            var old = x.expenses[det.idx], amtNew = num(f.amount);
+            var exps = x.expenses.slice();
+            exps[det.idx] = [f.what || old[0], String(f.payer || old[1]).trim() || old[1], amtNew, f.date || old[3], f.mode || 'Credit', f.method || 'Equally', f.shares || {}, old[7]];
+            var a1 = applyEffect(x, expEffect(old, x.members), -1);
+            var a2 = applyEffect(Object.assign({}, x, a1), expEffect(exps[det.idx], x.members), 1);
+            return Object.assign({}, x, a2, { expenses: exps, total: Math.max(0, x.total - old[2] + amtNew) });
+          }
+          var mem = (f.members || []).slice();
+          if (mem.indexOf('You') === -1) mem.unshift('You');
+          return Object.assign({}, x, { name: f.name || x.name, members: mem, open: !f.closed });
+        });
+        patch.editing = false; patch.editForm = {};
+        // after saving, go back (a split expense returns to its group)
+        patch.detail = (k === 'gexp' || k === 'group') ? { kind: 'group', id: det.id } : null;
+        self.setState(patch);
+    };
+
+    return {
+      lock: this.lockVals(accent, { bg: '#F4F5F7', text: '#111827', muted: '#5F6672', key: '#FFFFFF', danger: '#B42318', surface: '#FFFFFF', border: '#D5D8DE' }),
+      cur: C,
+      themeFilter: darkMode ? 'invert(0.92) hue-rotate(180deg)' : 'none',
+      accent: accent,
+      owedToYou: fmt(fromCards + fromSplits),
+      fromCards: fmt(fromCards),
+      fromSplits: fmt(fromSplits),
+      youOwe: fmt(youOwe),
+      tabs: ['Self bills', 'Paid & owe', 'Split bills'].map(function (l) {
+        var on = l === tab;
+        return { label: l, on: on, style: seg(on), pick: function () { self.setState({ tab: l }); } };
+      }),
+      showSelf: tab === 'Self bills',
+      showPaid: tab === 'Paid & owe',
+      showGroups: tab === 'Split bills',
+      // "Groups" filter: a simple list of every existing group
+      showGroupNames: gFilter === 'Groups',
+      groupNames: allGroups.map(function (g, i) {
+        return {
+          name: g.name, members: g.meta.split(' · ')[0], status: g.open ? 'Open' : 'Closed',
+          border: i === 0 ? 'none' : '1px solid #EDEFF2',
+          open: function () { openDetail('group', g.id); },
+          badgeStyle: 'flex-shrink: 0; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; ' + (g.open ? 'background: #E6FCF5; color: #0B5D4B' : 'background: #EDEFF2; color: #4B5260')
+        };
+      }),
+      selfCards: selfCards,
+      // People you owe (from split groups where someone else paid)
+      youOweList: (st.oweItems || []).map(function (w) {
+        return { name: w.who, initials: initialsOf(w.who), what: w.what + ' · ' + w.date, amountF: fmt(w.amount),
+          aria: 'You owe ' + w.who + ' ' + C + '' + fmt(w.amount) + ' for ' + w.what + '. Open details', open: function () { openDetail('owe', w.id); } };
+      }).concat([].concat.apply([], st.groupsData.map(function (g) {
+        // split-bill debts (one per person you owe) open their group
+        return Object.keys(g.bal || {}).filter(function (m) { return g.bal[m] < 0; }).map(function (who) {
+          return { name: who, initials: initialsOf(who), what: g.name + ' · split bill', amountF: fmt(-g.bal[who]),
+            aria: 'You owe ' + who + ' ' + C + '' + fmt(-g.bal[who]) + ' in ' + g.name + '. Open group', open: function () { openDetail('group', g.id); } };
+        });
+      }))),
+      noOneOwes: !lent.some(function (l) { return l.amount - l.paid > 0; }),
+      noYouOwe: !(st.oweItems || []).length && !st.groupsData.some(function (g) { return Object.keys(g.bal || {}).some(function (m) { return g.bal[m] < 0; }); }),
+      paidFor: lent.map(function (l) {
+        return {
+          name: l.who, initials: initialsOf(l.who),
+          what: l.what, card: l.card,
+          dueF: fmt(Math.max(0, l.amount - l.paid)), paidF: fmt(l.paid), amountF: fmt(l.amount),
+          pct: (l.amount ? Math.min(100, Math.round(l.paid / l.amount * 100)) : 0) + '%',
+          aria: l.who + ', ' + l.what + ', owes you ' + C + '' + fmt(Math.max(0, l.amount - l.paid)) + '. Open details',
+          open: function () { openDetail('paid', l.id); }
+        };
+      }),
+
+      // Detail view: open, edit, delete
+      detailOpen: !!dItem,
+      dt: dt,
+      dtViewing: !!dItem && !st.editing,
+      dtEditing: !!dItem && !!st.editing,
+      editFields: editFields,
+      closeDetail: function () {
+        // From a single split expense, Back returns to its group
+        if (det && det.kind === 'gexp') { self.setState({ detail: { kind: 'group', id: det.id }, editing: false, confirmDelete: false, editForm: {} }); return; }
+        self.setState({ detail: null, editing: false, confirmDelete: false, editForm: {} });
+      },
+      startEdit: function () {
+        if (!dItem) return;
+        var f;
+        if (det.kind === 'self') f = { what: dItem.what, amount: String(dItem.amount), card: dItem.card, date: dItem.date };
+        else if (det.kind === 'paid') f = { who: dItem.who, what: dItem.what, amount: String(dItem.amount), paid: String(dItem.paid), card: dItem.card };
+        else if (det.kind === 'csplit') f = { amount: String(dItem.amount), card: det.id };
+        else if (det.kind === 'gexp') f = { what: gExp[0], amount: String(gExp[2]), payer: gExp[1], date: gExp[3] };
+        else f = { name: dItem.name, members: dItem.members.slice(), closed: !dItem.open };
+        self.setState({ editing: true, editForm: f });
+      },
+      cancelEdit: function () { self.setState({ editing: false, editForm: {} }); },
+      saveEdit: function () { saveNow(); },
+      askDelete: function () { self.setState({ confirmDelete: true }); },
+      // Group edit: members as name buttons; press and hold to remove, "+" to add
+      memberChips: (ef.members || []).map(function (m) {
+        var ask = function () { if (m !== 'You') { self._longPressed = true; self.setState({ removeAsk: m, removeFrom: 'groupEdit' }); } };
+        return {
+          label: m,
+          style: pill(true) + '; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none',
+          pressStart: function () { self._longPressed = false; clearTimeout(self._pressTimer); self._pressTimer = setTimeout(ask, 550); },
+          pressEnd: function () { clearTimeout(self._pressTimer); },
+          menu: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); clearTimeout(self._pressTimer); ask(); },
+          tap: function () { self._longPressed = false; }
+        };
+      }),
+      memberAdding: !!st.memberAdding,
+      toggleMemberAdding: function () { self.setState({ memberAdding: !self.state.memberAdding }); },
+      memberNew: st.memberNew || '',
+      setMemberNew: function (ev) { self.setState({ memberNew: ev.target.value }); },
+      addMember: function () {
+        var nm = String(self.state.memberNew || '').trim();
+        var ef3 = Object.assign({}, self.state.editForm);
+        var list = (ef3.members || self._baseForm.members || []).slice();
+        if (nm && list.indexOf(nm) === -1) list.push(nm);
+        ef3.members = list;
+        self.setState({ editForm: ef3, memberAdding: false, memberNew: '' });
+      },
+      // Groups open as details only; "Edit group" switches to the edit form
+      showRows: !!dItem && det.kind === 'group' && !st.editing,
+      showForm: !!dItem && (det.kind !== 'group' || !!st.editing),
+      showList: !!dt.hasList && !(det && det.kind === 'group' && st.editing),
+      primaryIsEdit: !!det && det.kind === 'group' && !st.editing,
+      primaryIsSave: !(det && det.kind === 'group' && !st.editing),
+      primaryAction: function () {
+        if (det.kind === 'group' && !self.state.editing) { self.setState({ editing: true, editForm: {} }); return; }
+        saveNow();
+      },
+      showCancel: !!det && det.kind === 'group' && !!st.editing,
+      showDelete: !(det && det.kind === 'group' && st.editing),
+      editLabel: det && det.kind === 'group' ? (st.editing ? 'Save group' : 'Edit group') : 'Save',
+      deleteLabel: det && det.kind === 'group' ? 'Delete group' : 'Delete',
+      confirmTitle: det && det.kind === 'group' ? 'Delete this group?' : 'Are you sure?',
+      confirmText: det && det.kind === 'group' && dItem
+        ? 'Delete the group “' + dItem.name + '” and all ' + dItem.expenses.length + ' of its expenses? This can’t be undone.'
+        : 'Delete “' + dt.title + '”? The totals will update.',
+      confirmingDelete: !!dItem && !!st.confirmDelete,
+      cancelDelete: function () { self.setState({ confirmDelete: false }); },
+      confirmDelete: function () {
+        if (det.kind === 'csplit') {
+          var cs2 = Object.assign({}, self.state.cardSplits); delete cs2[det.id];
+          self.setState({ cardSplits: cs2, detail: null, confirmDelete: false, editing: false });
+          return;
+        }
+        if (det.kind === 'gexp') {
+          var p = replaceIn('groupsData', det.id, function (x) {
+            var old = x.expenses[det.idx];
+            var a = applyEffect(x, expEffect(old, x.members), -1);   // undo its effect on balances
+            return Object.assign({}, x, a, { expenses: x.expenses.filter(function (e, i) { return i !== det.idx; }), total: Math.max(0, x.total - old[2]), count: Math.max(0, x.count - 1) });
+          });
+          p.detail = { kind: 'group', id: det.id }; p.confirmDelete = false; p.editing = false;
+          self.setState(p);
+          return;
+        }
+        var key = listKeyOf(det.kind), o = {};
+        o[key] = self.state[key].filter(function (x) { return x.id !== det.id; });
+        o.detail = null; o.confirmDelete = false; o.editing = false;
+        self.setState(o);
+      },
+
+      // Save from the Add expense sheet into the matching tab (so new items open, edit and delete too)
+      saveExpense: function () {
+        var s2 = self.state, amt = num(s2.amount), name = String(s2.what || '').trim() || 'New expense';
+        var id = 'n' + s2.nextId, o = { nextId: s2.nextId + 1, sheetOpen: false, what: '', amount: '' };
+        if (s2.kinds.self) {
+          o.selfItems = s2.selfItems.concat([{ id: id, card: s2.card, what: name, date: ddmmyy(new Date()), amount: amt }]);
+          o.tab = 'Self bills';
+        } else if (s2.kinds.owe) {
+          o.oweItems = (s2.oweItems || []).concat([{ id: id, who: String(s2.oweTo || '').trim() || 'Someone', what: name, amount: amt, date: ddmmyy(new Date()) }]);
+          o.oweTo = '';
+          o.tab = 'Paid & owe';
+        } else if (s2.kinds.paid) {
+          o.lentItems = s2.lentItems.concat([{ id: id, who: String(s2.lentTo || '').trim() || 'Someone', what: name, card: s2.card, amount: amt, paid: 0, date: ddmmyy(new Date()) }]);
+          o.tab = 'Paid & owe';
+        } else {
+          var gName = String(s2.groupPick || '').trim() || name;
+          // keep the split method, shares, mode and who it was split between, so editing opens with them selected
+          var newExp = [name, s2.payer, amt, ddmmyy(new Date()), s2.payMode || 'Credit', s2.method || 'Equally', Object.assign({}, s2.manual || {}), inSplit.slice()];
+          var eff = expEffect(newExp, inSplit);
+          var found = false;
+          o.groupsData = s2.groupsData.map(function (g) {
+            if (g.name !== gName) return g;
+            found = true;
+            return Object.assign({}, g, applyEffect(g, eff, 1), { total: g.total + amt, count: g.count + 1, open: true,
+              expenses: [newExp].concat(g.expenses) });
+          });
+          if (!found) {
+            var ng = { id: id, name: gName, members: inSplit.length ? inSplit.slice() : ['You'], open: true, total: amt, count: 1, net: 0, bal: {}, when: '', expenses: [newExp] };
+            o.groupsData = [Object.assign(ng, applyEffect(ng, eff, 1))].concat(o.groupsData);
+          }
+          o.tab = 'Split bills'; o.groupFilter = 'All';
+        }
+        self.setState(o);
+      },
+      paidBackF: fmt(paidBack),
+      openCount: openCount,
+      closedCount: allGroups.length - openCount,
+      groupFilters: ['All', 'Open', 'Closed', 'Groups'].map(function (l) {
+        var on = l === gFilter;
+        return { label: l, on: on, style: pill(on), pick: function () { self.setState({ groupFilter: l }); } };
+      }),
+      groups: groups,
+      billMine: fmt(billMine),
+      billOthers: fmt(billOthers),
+      billTotal: fmt(billMine + billOthers),
+
+      sheetOpen: this.state.sheetOpen,
+      openSheet: function () { self.setState({ sheetOpen: true }); },
+      closeSheet: function () { self.setState({ sheetOpen: false }); },
+      kinds: [
+        ['self', 'Self bills', 'Just for you, on your card'],
+        ['paid', 'Paid for', 'You paid on your card for someone'],
+        ['split', 'Split bills', 'Shared between people'],
+        ['owe', 'Owe to', 'Someone paid for you']
+      ].map(function (k) {
+        var on = !!kindFlags[k[0]];
+        return {
+          label: k[1], hint: k[2], on: on,
+          toggle: function () {
+            // Only one type at a time: ticking one clears the others
+            var next = { self: false, paid: false, split: false, owe: false };
+            next[k[0]] = !self.state.kinds[k[0]];
+            self.setState({ kinds: next });
+          }
+        };
+      }),
+      isSplit: isSplit,
+      isLent: isLent,
+      isOwe: !!kindFlags.owe,
+      oweTo: this.state.oweTo || '',
+      setOweTo: function (ev) { self.setState({ oweTo: ev.target.value }); },
+      oweLine: 'You’ll owe ' + (String(this.state.oweTo || '').trim() || 'them'),
+      showCard: !!kindFlags.self || isLent,
+      what: this.state.what,
+      amount: this.state.amount,
+      amountF: fmt(amount),
+      setWhat: function (ev) { self.setState({ what: ev.target.value }); },
+      setAmount: function (ev) { self.setState({ amount: dec(ev.target.value) }); },
+      groupSuggestions: groupMatches.map(function (g) {
+        var sel = g.name === self.state.groupPick;
+        return {
+          label: g.name, meta: (sel ? '✓ Selected · ' : '') + (g.open ? 'Open' : 'Closed'), selected: sel,
+          rowStyle: 'min-height: 44px; padding: 0 12px; border: none; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-family: inherit; font-size: 14px; color: #111827; text-align: left; cursor: pointer; background: ' + (sel ? '#EEF1FD' : 'transparent') + '; font-weight: ' + (sel ? '600' : '400'),
+          pick: function () { self.setState({ groupPick: g.name, groupMenu: false, picked: {}, manual: {}, extraNames: [], removed: [] }); }
+        };
+      }),
+      noGroupMatch: groupMatches.length === 0 && String(this.state.groupPick).trim() !== '',
+      groupPick: this.state.groupPick,
+      setGroup: function (ev) { self.setState({ groupPick: ev.target.value, groupMenu: true }); },
+      groupMenu: !!this.state.groupMenu,
+      openGroupMenu: function () { self.setState({ groupMenu: true }); },
+      toggleGroupMenu: function () { self.setState({ groupMenu: !self.state.groupMenu }); },
+      chevronStyle: 'transition: transform 150ms ease; transform: rotate(' + (this.state.groupMenu ? 180 : 0) + 'deg)',
+      payers: ['You'].concat(this.state.payerExtras || []).map(function (p) {
+        var on = p === payer;
+        var askRemove = function () { if (p !== 'You') { self._longPressed = true; self.setState({ removeAsk: p, removeFrom: 'payer' }); } };
+        return {
+          label: p, on: on, style: pill(on) + '; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none',
+          pressStart: function () { self._longPressed = false; clearTimeout(self._pressTimer); self._pressTimer = setTimeout(askRemove, 550); },
+          pressEnd: function () { clearTimeout(self._pressTimer); },
+          menu: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); clearTimeout(self._pressTimer); askRemove(); },
+          pick: function () { if (self._longPressed) { self._longPressed = false; return; } self.setState({ payer: p }); }
+        };
+      }),
+      payerAdding: !!this.state.payerAdding,
+      togglePayerAdding: function () { self.setState({ payerAdding: !self.state.payerAdding }); },
+      payerNew: this.state.payerNew || '',
+      setPayerNew: function (ev) { self.setState({ payerNew: ev.target.value }); },
+      addPayer: function () {
+        var n = String(self.state.payerNew || '').trim();
+        var extras = self.state.payerExtras || [];
+        if (!n) { self.setState({ payerAdding: false }); return; }
+        var next = n === 'You' || extras.indexOf(n) !== -1 ? extras : extras.concat([n]);
+        // the payer is also part of the split
+        var picked = Object.assign({}, self.state.picked); picked[n] = true;
+        var names2 = self.state.extraNames.indexOf(n) === -1 && ['You', 'Arun', 'Priya', 'Divya', 'Karthik'].indexOf(n) === -1 ? self.state.extraNames.concat([n]) : self.state.extraNames;
+        self.setState({ payerExtras: next, payer: n, payerAdding: false, payerNew: '', picked: picked, extraNames: names2 });
+      },
+      chips: names.map(function (n) {
+        var on = picked[n] !== false;
+        var askRemove = function () { if (n !== 'You') { self._longPressed = true; self.setState({ removeAsk: n, removeFrom: 'member' }); } };
+        return {
+          label: n, on: on, style: pill(on) + '; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none',
+          // Long press (or right-click) opens "Remove member"; a normal tap ticks / unticks
+          pressStart: function () {
+            self._longPressed = false;
+            clearTimeout(self._pressTimer);
+            self._pressTimer = setTimeout(askRemove, 550);
+          },
+          pressEnd: function () { clearTimeout(self._pressTimer); },
+          menu: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); clearTimeout(self._pressTimer); askRemove(); },
+          toggle: function () {
+            if (self._longPressed) { self._longPressed = false; return; }
+            var next = Object.assign({}, self.state.picked); next[n] = !(next[n] !== false); self.setState({ picked: next });
+          }
+        };
+      }),
+      adding: this.state.adding,
+      toggleAdding: function () { self.setState({ adding: !self.state.adding }); },
+      newName: this.state.newName,
+      setNewName: function (ev) { self.setState({ newName: ev.target.value }); },
+      addPerson: function () {
+        var n = String(self.state.newName).trim();
+        if (!n || names.indexOf(n) !== -1) { self.setState({ adding: false, newName: '' }); return; }
+        var nextPicked = Object.assign({}, self.state.picked);
+        nextPicked[n] = true;
+        var wasRemoved = (self.state.removed || []).indexOf(n) !== -1;
+        self.setState({
+          extraNames: wasRemoved || baseMembers.indexOf(n) !== -1 ? self.state.extraNames : self.state.extraNames.concat([n]),
+          removed: (self.state.removed || []).filter(function (x) { return x !== n; }),
+          picked: nextPicked, adding: false, newName: ''
+        });
+      },
+      removedChips: removed.map(function (n) {
+        return {
+          label: n,
+          restore: function () {
+            var p = Object.assign({}, self.state.picked); p[n] = true;
+            var isBase = baseMembers.indexOf(n) !== -1;
+            self.setState({
+              removed: (self.state.removed || []).filter(function (x) { return x !== n; }),
+              extraNames: isBase || self.state.extraNames.indexOf(n) !== -1 ? self.state.extraNames : self.state.extraNames.concat([n]),
+              picked: p
+            });
+          }
+        };
+      }),
+      hasRemoved: removed.length > 0,
+      paidByLabel: 'Paid by ' + (payer === 'You' ? 'you' : payer),
+      payerBackLabel: (payer === 'You' ? 'You get back' : payer + ' gets back'),
+      payerBackF: fmt(payerBack),
+      methods: ['Equally', 'By shares'].map(function (m) {
+        var on = m === self.state.method;
+        return { label: m, on: on, style: seg(on), pick: function () { self.setState({ method: m }); } };
+      }),
+      shares: shares,
+      removeAsk: !!this.state.removeAsk,
+      removeName: this.state.removeAsk || '',
+      removeWhere: this.state.removeFrom === 'payer' ? '“Paid by”' : (this.state.removeFrom === 'groupEdit' ? 'this group' : 'this split'),
+      cancelRemove: function () { self.setState({ removeAsk: null }); },
+      confirmRemove: function () {
+        var n = self.state.removeAsk;
+        if (self.state.removeFrom === 'groupEdit') {
+          var ef2 = Object.assign({}, self.state.editForm);
+          ef2.members = (ef2.members || self._baseForm.members || []).filter(function (x) { return x !== n; });
+          self.setState({ removeAsk: null, editForm: ef2 });
+          return;
+        }
+        if (self.state.removeFrom === 'payer') {
+          self.setState({
+            removeAsk: null,
+            payerExtras: (self.state.payerExtras || []).filter(function (x) { return x !== n; }),
+            payer: self.state.payer === n ? 'You' : self.state.payer
+          });
+          return;
+        }
+        var nextPicked = Object.assign({}, self.state.picked); delete nextPicked[n];
+        var nextManual = Object.assign({}, self.state.manual || {}); delete nextManual[n];
+        self.setState({
+          removeAsk: null,
+          removed: (self.state.removed || []).concat([n]),
+          extraNames: self.state.extraNames.filter(function (x) { return x !== n; }),
+          picked: nextPicked, manual: nextManual,
+          payer: self.state.payer === n ? 'You' : self.state.payer
+        });
+      },
+      // Only shown when you paid the whole bill
+      youPaid: payer === 'You',
+      payModes: ['Credit', 'Debit', 'Cash'].map(function (m) {
+        var on = (self.state.payMode || 'Credit') === m;
+        return { label: m, on: on, style: seg(on), pick: function () { self.setState({ payMode: m }); } };
+      }),
+      membersTitle: hasGroup ? 'Split between · ' + groupName + ' members' : 'Split between',
+      isEqual: this.state.method === 'Equally',
+      isManual: this.state.method === 'By shares',
+      manualRows: manualRows,
+      manualLabel: manualLeft === 0 ? 'Balance' : (manualLeft > 0 ? 'Remaining to assign' : 'Exceeded by'),
+      manualBalanceF: fmt(Math.abs(manualLeft)),
+      manualColor: manualLeft === 0 ? '#1E5E2B' : (manualLeft > 0 ? '#8A3A00' : '#B42318'),
+      cardChips: payOptions.map(function (c) {
+        var on = c === self.state.card;
+        return { label: c, on: on, style: pill(on), pick: function () { self.setState({ card: c }); } };
+      }),
+      lentTo: this.state.lentTo,
+      setLentTo: function (ev) { self.setState({ lentTo: ev.target.value }); },
+      lentLine: (lentName || 'They') + ' will owe you',
+      saveLabel: 'Save expense · ' + C + '' + fmt(amount)
+    };
+  }
+}
+</script>
+</body>
+</html>

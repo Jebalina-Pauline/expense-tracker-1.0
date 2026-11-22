@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Expense tracker</title>
+<meta name="description" content="Private expense tracker. All data stays on this device.">
+<meta name="theme-color" content="#F4F5F7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Expenses">
+<meta name="format-detection" content="telephone=no">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  html, body { margin: 0; height: 100%; background: #F4F5F7; -webkit-text-size-adjust: 100%; }
+  body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+  dc-group { display: contents; }
+  #app { height: 100vh; height: 100dvh; max-width: 520px; margin: 0 auto; position: relative; overflow: hidden; }
+  /* the screens were designed at 390 × 844 — stretch them to the phone */
+  #app > div { width: 100% !important; height: 100% !important; }
+  /* keep the bottom tab bar clear of the iPhone home indicator */
+  nav[aria-label="Main"] { height: calc(68px + max(14px, env(safe-area-inset-bottom))) !important; padding-bottom: max(14px, env(safe-area-inset-bottom)) !important; }
+  input, select, textarea { font-size: 16px !important; } /* stops iOS zooming into fields */
+  #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font: 500 15px Inter, system-ui, sans-serif; color: #5F6672; }
+</style>
+</head>
+<body>
+<div id="boot">Opening…</div>
+<div id="app"></div>
+<noscript>Please turn on JavaScript to use Expense tracker.</noscript>
+<script src="runtime.js"></script>
+<script>
+  // Register the offline worker (also lets the app show notifications on iPhone once installed)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+  // First launch: start with an empty app (the design's sample cards, bills and groups are not loaded)
+  try {
+    var ls = window.localStorage, fresh = true;
+    for (var i = 0; i < ls.length; i++) { if ((ls.key(i) || '').indexOf('expenseTracker.') === 0) { fresh = false; break; } }
+    if (fresh) {
+      ls.setItem('expenseTracker.cards', '[]');
+      ls.setItem('expenseTracker.sharedFull', JSON.stringify({ selfItems: [], lentItems: [], groupsData: [], oweItems: [], cardSplits: {} }));
+      ls.setItem('expenseTracker.shared', JSON.stringify({ selfItems: [], lentItems: [], cardSplits: {}, oweItems: [], groups: [] }));
+      ls.setItem('expenseTracker.cardBills', '{}');
+      ls.setItem('expenseTracker.notify', JSON.stringify({ bills: true, remind: true, budget: true }));
+    }
+  } catch (e) {}
+  ExpenseApp.start(document.getElementById('app'), ['Main', 'Split', 'Budget', 'History', 'Profile'])
+    .then(function () { var b = document.getElementById('boot'); if (b) b.remove(); })
+    .catch(function (e) { document.getElementById('boot').textContent = 'Couldn’t open the app. Check your connection the first time you open it.'; console.error(e); });
+</script>
+</body>
+</html>

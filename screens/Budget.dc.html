@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Salary and monthly budget</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3B5BDB}a:hover{color:#2F4AB8}
+</style>
+</helmet>
+<div style="position: relative; filter: {{themeFilter}}; width: 390px; height: 844px; display: flex; flex-direction: column; background: #F4F5F7; font-family: Inter, system-ui, sans-serif; color: #111827; overflow: hidden">
+  <div style="flex: 1; overflow-y: auto; padding: 56px 20px 24px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 13px; font-weight: 500; color: #5F6672">{{monthLabel}} · {{daysLeft}} days left</span>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.5px">Budget</h1>
+    </div>
+
+    <section aria-label="Balance for the rest of the month" style="background: {{accent}}; color: #FFFFFF; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #E3E8FC">Left for the rest of the month</span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 38px; font-weight: 700; letter-spacing: -1px">{{leftSigned}}</span>
+        <sc-if value="{{hasSaveMe}}" hint-placeholder-val="{{ false }}">
+          <span style="font-size: 12px; color: #E3E8FC">Balance {{balanceSigned}} − Save me salary {{cur}}{{saveMeF}}</span>
+        </sc-if>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.14); border-radius: 14px; padding: 12px 14px">
+        <span style="font-size: 13px">Safe to spend per day</span>
+        <span style="font-size: 16px; font-weight: 700">{{cur}}{{perDay}}</span>
+      </div>
+    </section>
+
+    <section aria-label="Savings in bank" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+      <label for="savings" style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 14px; font-weight: 700">Savings in bank</span>
+        <span style="font-size: 12px; color: #5F6672">Entered by you · not incl. this month</span>
+      </label>
+      <div style="display: flex; align-items: center; gap: 4px; width: 140px; flex-shrink: 0; border: 1px solid #D5D8DE; border-radius: 10px; padding: 0 10px; min-height: 44px; box-sizing: border-box">
+        <span aria-hidden="true" style="font-size: 14px; color: #5F6672">{{cur}}</span>
+        <input id="savings" type="text" inputmode="decimal" placeholder="0" value="{{savings}}" onChange="{{setSavings}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; text-align: right">
+      </div>
+    </section>
+
+    <section aria-labelledby="salary-h" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <label id="salary-h" for="salary" style="font-size: 14px; font-weight: 700">Salary credited</label>
+      <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #D5D8DE; border-radius: 12px; padding: 0 14px; min-height: 52px">
+        <span aria-hidden="true" style="font-size: 18px; font-weight: 600; color: #5F6672">{{cur}}</span>
+        <input id="salary" type="text" inputmode="decimal" placeholder="0" value="{{salary}}" onChange="{{setSalary}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: #111827">
+      </div>
+      <span style="font-size: 12px; color: #5F6672">Credited on {{creditDate}}</span>
+    </section>
+
+    <section aria-labelledby="regular-h" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 6px">
+        <h2 id="regular-h" style="margin: 0; font-size: 14px; font-weight: 700">Regular expenses</h2>
+        <span style="font-size: 14px; font-weight: 700">− {{cur}}{{regularTotal}}</span>
+      </div>
+      <sc-for list="{{expenses}}" as="e" hint-placeholder-count="4">
+        <div style="position: relative; overflow: hidden; border-top: 1px solid #EDEFF2">
+          <button type="button" onClick="{{e.askDelete}}" aria-label="{{e.deleteLabel}}" style="position: absolute; top: 0; right: 0; bottom: 0; width: 88px; border: none; background: #C92A2A; color: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Delete</button>
+          <div onPointerDown="{{e.down}}" onPointerMove="{{e.move}}" onPointerUp="{{e.up}}" onPointerCancel="{{e.cancel}}" style="{{e.rowStyle}}">
+            <input type="text" aria-label="Expense name" placeholder="Expense name" value="{{e.label}}" onChange="{{e.rename}}" style="flex: 1; min-width: 0; min-height: 40px; border: 1px solid #E3E5E9; border-radius: 10px; padding: 0 10px; font-family: inherit; font-size: 14px; color: #111827; box-sizing: border-box">
+            <div style="display: flex; align-items: center; gap: 4px; width: 120px; flex-shrink: 0; border: 1px solid #E3E5E9; border-radius: 10px; padding: 0 10px; min-height: 40px; box-sizing: border-box">
+              <span aria-hidden="true" style="font-size: 14px; color: #5F6672">{{cur}}</span>
+              <input id="{{e.id}}" type="text" inputmode="decimal" placeholder="0" value="{{e.value}}" onChange="{{e.change}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; text-align: right">
+            </div>
+          </div>
+        </div>
+      </sc-for>
+      <button type="button" onClick="{{addExpense}}" style="min-height: 44px; margin-top: 4px; border: 1px dashed #B8BEC8; border-radius: 12px; background: none; font-family: inherit; font-size: 14px; font-weight: 600; color: {{accent}}; cursor: pointer">+ Add daily expense</button>
+    </section>
+
+    <section aria-labelledby="calc-h" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <h2 id="calc-h" style="margin: 0; font-size: 14px; font-weight: 700">How it adds up</h2>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Salary</span><span>{{cur}}{{salaryF}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Regular expenses</span><span>− {{cur}}{{regularTotal}}</span></div>
+      
+      <div style="height: 1px; background: #E3E5E9"></div>
+      <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700"><span>Balance</span><span style="color: {{balanceColor}}">{{balanceSigned}}</span></div>
+    </section>
+
+    <section aria-labelledby="bills-h" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <h2 id="bills-h" style="margin: 0; font-size: 14px; font-weight: 700">Credit card bills</h2>
+        <span style="font-size: 12px; color: #5F6672">Enter each bill amount. Also shown on the Cards screen.</span>
+      </div>
+      <sc-if value="{{noCreditCards}}" hint-placeholder-val="{{ false }}">
+        <span style="font-size: 13px; color: #5F6672">No credit cards added yet. Add one on the Cards screen.</span>
+      </sc-if>
+      <sc-for list="{{billInputs}}" as="b" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; border-top: 1px solid #EDEFF2">
+          <label for="{{b.id}}" style="display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: #3D434D">
+            <span>{{b.name}}</span>
+            <span style="font-size: 12px; color: #5F6672">•••• {{b.last4}} · due {{b.due}}</span>
+          </label>
+          <div style="display: flex; align-items: center; gap: 4px; width: 120px; flex-shrink: 0; border: 1px solid #E3E5E9; border-radius: 10px; padding: 0 10px; min-height: 40px; box-sizing: border-box">
+            <span aria-hidden="true" style="font-size: 14px; color: #5F6672">{{cur}}</span>
+            <input id="{{b.id}}" type="text" inputmode="decimal" placeholder="0" value="{{b.value}}" onChange="{{b.change}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; text-align: right">
+          </div>
+        </div>
+      </sc-for>
+      <div style="height: 1px; background: #E3E5E9"></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Credit card bills</span><span>{{cur}}{{billsTotalF}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Other expenses you owe</span><span>+ {{cur}}{{owedOthersF}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600"><span>Total to pay</span><span>{{cur}}{{toPayF}}</span></div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 14px; color: #3D434D">Money people owe you</span>
+        <sc-for list="{{oweList}}" as="ow" hint-placeholder-count="4">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-left: 12px; font-size: 14px">
+            <span style="display: flex; flex-direction: column; gap: 1px">
+              <span style="color: #111827">{{ow.name}}</span>
+              <span style="font-size: 12px; color: #5F6672">{{ow.why}}</span>
+            </span>
+            <span style="color: #1E5E2B; flex-shrink: 0">− {{cur}}{{ow.amountF}}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{noOwers}}" hint-placeholder-val="{{ false }}">
+          <span style="padding-left: 12px; font-size: 13px; color: #5F6672">No one owes you right now · {{cur}}0</span>
+        </sc-if>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3D434D"><span>Savings in bank</span><span style="color: #1E5E2B">− {{cur}}{{savingsF}}</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: #3D434D">
+        <label for="save-me-salary">Save me salary</label>
+        <div style="display: flex; align-items: center; gap: 4px; width: 120px; flex-shrink: 0; border: 1px solid #E3E5E9; border-radius: 10px; padding: 0 10px; min-height: 40px; box-sizing: border-box">
+          <span aria-hidden="true" style="font-size: 14px; color: #1E5E2B">− {{cur}}</span>
+          <input id="save-me-salary" type="text" inputmode="decimal" placeholder="0" value="{{saveMe}}" onChange="{{setSaveMe}}" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: 600; color: #1E5E2B; text-align: right">
+        </div>
+      </div>
+      <div style="height: 1px; background: #E3E5E9"></div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 700"><span>{{billBalanceLabel}}</span><span style="color: {{billBalanceColor}}">{{cur}}{{billBalanceF}}</span></div>
+    </section>
+
+    <div style="display: flex; flex-direction: column; align-items: stretch; gap: 6px">
+      <button type="button" onClick="{{saveAll}}" style="{{saveStyle}}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg>
+        {{saveText}}
+      </button>
+      <span role="status" style="align-self: center; font-size: 12px; color: {{saveNoteColor}}">{{saveNote}}</span>
+    </div>
+  </div>
+
+  <nav aria-label="Main" style="height: 82px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E3E5E9; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 14px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+      Cards
+    </a>
+    <a href="Split.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.8.8 3 2.6 3.5 5.2"></path></svg>
+      Bills
+    </a>
+    <a href="Budget.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: {{accent}}; font-weight: 600">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 7l12-3v3"></path><circle cx="16.5" cy="14" r="1.2"></circle></svg>
+      Budget
+    </a>
+    <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path><path d="M12 8v4l3 2"></path></svg>
+      History
+    </a>
+    <a href="Profile.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 11px; color: #5F6672; font-weight: 500">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"></path></svg>
+      Profile
+    </a>
+  </nav>
+
+  <sc-if value="{{confirming}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="del-h" aria-describedby="del-d" style="width: 100%; background: #FFFFFF; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 40px rgba(17,24,39,0.25)">
+        <h2 id="del-h" style="margin: 0; font-size: 18px; font-weight: 700">Are you sure?</h2>
+        <p id="del-d" style="margin: 0; font-size: 14px; line-height: 1.5; color: #3D434D">Delete <strong>{{confirmLabel}}</strong> ({{cur}}{{confirmAmount}})? Your balance will be updated.</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <button type="button" onClick="{{cancelDelete}}" style="min-height: 48px; border: 1px solid #D5D8DE; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; color: #111827; cursor: pointer">Cancel</button>
+          <button type="button" onClick="{{confirmDelete}}" style="min-height: 48px; border: none; border-radius: 12px; background: #C92A2A; font-family: inherit; font-size: 15px; font-weight: 600; color: #FFFFFF; cursor: pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{lock.show}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-modal="true" aria-labelledby="lock-title" style="position: absolute; inset: 0; z-index: 200; background: {{lock.bg}}; color: {{lock.text}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 36px 28px; box-sizing: border-box; font-family: Inter, system-ui, sans-serif">
+      <div aria-hidden="true" style="width: 60px; height: 60px; border-radius: 30px; background: {{lock.accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+        <h2 id="lock-title" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700">{{lock.title}}</h2>
+        <p role="status" style="margin: 0; font-size: 14px; color: {{lock.hintColor}}">{{lock.hint}}</p>
+      </div>
+      <div aria-hidden="true" style="display: flex; gap: 16px">
+        <sc-for list="{{lock.dots}}" as="pd" hint-placeholder-count="4"><span style="{{pd.style}}"></span></sc-for>
+      </div>
+      <sc-if value="{{lock.forgotOpen}}" hint-placeholder-val="{{ false }}">
+        <div style="width: 100%; background: {{lock.surface}}; border: 1px solid {{lock.border}}; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box">
+          <span style="font-size: 15px; font-weight: 700">Forgot your PIN?</span>
+          <span style="font-size: 13px; color: {{lock.muted}}">For your privacy the PIN can’t be recovered. You can erase all data on this device and then restore your latest backup from Profile.</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <button type="button" onClick="{{lock.closeForgot}}" style="min-height: 46px; border: 1px solid {{lock.border}}; border-radius: 12px; background: transparent; color: {{lock.text}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+            <button type="button" onClick="{{lock.eraseAll}}" style="min-height: 46px; border: none; border-radius: 12px; background: {{lock.danger}}; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Erase data</button>
+          </div>
+        </div>
+      </sc-if>
+      <div role="group" aria-label="PIN keypad" style="width: 100%; max-width: 260px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px">
+        <sc-for list="{{lock.keys}}" as="pk" hint-placeholder-count="12">
+          <button type="button" aria-label="{{pk.aria}}" aria-hidden="{{pk.hidden}}" onClick="{{pk.press}}" style="{{pk.style}}">{{pk.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{lock.isUnlock}}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{lock.openForgot}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.accent}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Forgot PIN?</button>
+      </sc-if>
+      <sc-if value="{{lock.canCancel}}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{lock.cancel}}" style="min-height: 44px; padding: 0 12px; border: none; background: transparent; color: {{lock.muted}}; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Cancel</button>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#3B5BDB","options":["#3B5BDB","#0B7285","#6741D9","#111827"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      salary: '',
+      savings: '',
+      saveMe: '',
+      bills: { hdfc: '', icici: '' },
+      items: [
+        { key: 'rent', label: 'Rent', value: '' },
+        { key: 'emi', label: 'Loan / EMI', value: '' },
+        { key: 'groceries', label: 'Groceries', value: '' },
+        { key: 'sip', label: 'Savings / SIP', value: '' }
+      ],
+      nextId: 1,
+      drag: null,
+      openKey: null,
+      confirmKey: null,
+      // Latest data from the Cards and Shared screens (same sample until those screens save their own)
+      cardsList: [
+        { id: 'hdfc', name: 'HDFC Regalia', type: 'Credit', last4: '4521', due: 5 },
+        { id: 'icici', name: 'ICICI Amazon Pay', type: 'Credit', last4: '8834', due: 12 },
+        { id: 'sbi', name: 'SBI Savings', type: 'Debit', last4: '1209' },
+        { id: 'axis', name: 'Axis Salary', type: 'Debit', last4: '7710' }
+      ],
+      shared: {
+        selfItems: [
+          { id: 's1', card: 'HDFC •• 4521', what: 'Amazon', date: '11/11/26', amount: 5600 },
+          { id: 's2', card: 'HDFC •• 4521', what: 'Swiggy & Zomato', date: '20/11/26', amount: 3850 },
+          { id: 's3', card: 'ICICI •• 8834', what: 'Amazon groceries', date: '16/11/26', amount: 4200 },
+          { id: 's4', card: 'ICICI •• 8834', what: 'Fuel', date: '20/11/26', amount: 3100 }
+        ],
+        lentItems: [
+          { id: 'p1', who: 'Arun Kumar', what: 'Flight tickets', card: 'HDFC •• 4521', amount: 4000, paid: 1000, date: '08/11/26' },
+          { id: 'p2', who: 'Priya S', what: 'Headphones', card: 'HDFC •• 4521', amount: 2150, paid: 0, date: '03/11/26' },
+          { id: 'p3', who: 'Karthik R', what: 'Concert tickets', card: 'ICICI •• 8834', amount: 3500, paid: 1500, date: '12/11/26' }
+        ],
+        cardSplits: { 'HDFC •• 4521': 8750, 'ICICI •• 8834': 2000 },
+        oweItems: [],
+        groups: [
+          { id: 'g1', name: 'Goa trip', net: 2445, bal: { Arun: 815, Divya: 415, Karthik: 1215 } },
+          { id: 'g2', name: 'Flat 3B', net: -1250, bal: { Priya: -850, Meera: -400 } },
+          { id: 'g3', name: 'Office lunches', net: 1700, bal: { Arun: 400, Priya: 400, Divya: 400, Rahul: 100, Sneha: 400 } }
+        ]
+      },
+      savedSnap: null,
+      savedAt: ''
+    };
+  }
+  snapshot(st) {
+    st = st || this.state;
+    return JSON.stringify({ salary: st.salary, savings: st.savings, saveMe: st.saveMe, bills: st.bills, items: st.items });
+  }
+  _loadPrefs() {
+    // theme, accent and currency chosen on the Profile screen
+    try {
+      var p = JSON.parse(window.localStorage.getItem('expenseTracker.prefs') || 'null') || {};
+      try { p.systemDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); } catch (e2) {}
+      this.setState({ prefs: p });
+    } catch (e) {}
+  }
+  componentDidMount() {
+    this.lockMount();
+    var selfP = this;
+    var clockSelf = this;
+    this._clock = setInterval(function () { clockSelf.setState({ now: Date.now() }); }, 30000);
+    this._loadPrefs();
+    this._onPrefs = function (ev) { if (!ev || ev.key === 'expenseTracker.prefs') selfP._loadPrefs(); };
+    try { window.addEventListener('storage', this._onPrefs); } catch (e) {}
+
+    // Restore what you saved last time (and bill amounts shared with the Cards screen) when the browser allows it
+    var patch = {};
+    try {
+      var saved = JSON.parse(window.localStorage.getItem('expenseTracker.budget') || 'null');
+      if (saved && typeof saved === 'object') patch = saved;
+      var bills = JSON.parse(window.localStorage.getItem('expenseTracker.cardBills') || 'null');
+      if (bills && typeof bills === 'object') patch.bills = Object.assign({}, this.state.bills, patch.bills || {}, bills);
+    } catch (e) {}
+    var merged = Object.assign({}, this.state, patch);
+    patch.savedSnap = this.snapshot(merged);
+    this.setState(patch);
+    // keep in step with cards and shared expenses added, edited or deleted elsewhere
+    var self = this;
+    var loadLinked = function () {
+      var p2 = {};
+      try {
+        var cards = JSON.parse(window.localStorage.getItem('expenseTracker.cards') || 'null');
+        if (Array.isArray(cards)) p2.cardsList = cards;
+        var sh = JSON.parse(window.localStorage.getItem('expenseTracker.shared') || 'null');
+        if (sh && typeof sh === 'object') p2.shared = sh;
+      } catch (e) {}
+      self.setState(p2);
+    };
+    loadLinked();
+    this._onStorage = function (ev) { if (!ev || ev.key === 'expenseTracker.cards' || ev.key === 'expenseTracker.shared') loadLinked(); };
+    try { window.addEventListener('storage', this._onStorage); } catch (e) {}
+  }
+  // ---- App lock (4-digit PIN). Turned on/off in Profile › App lock. Stored only on this device as a salted hash.
+  lockHash(pin, salt) {
+    var h = 2166136261, str = salt + ':' + pin;
+    for (var r = 0; r < 500; r++) { for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } str = h.toString(16) + str.slice(0, 12); }
+    return h.toString(16);
+  }
+  lockRead() { try { return JSON.parse(window.localStorage.getItem('expenseTracker.lock') || 'null'); } catch (e) { return null; } }
+  lockInit() {
+    var lk = this.lockRead(), unlocked = false;
+    try { unlocked = window.sessionStorage.getItem('expenseTracker.unlocked') === '1'; } catch (e) {}
+    var on = !!(lk && lk.on && lk.h);
+    var p = { lockOn: on };
+    if (!on) { p.locked = false; if ((this.state || {}).pinMode === 'unlock') p.pinMode = null; }
+    else if (!unlocked) { p.locked = true; p.pinMode = 'unlock'; p.pinEntry = ''; p.pinErr = ''; }
+    else if ((this.state || {}).pinMode === 'unlock') { p.locked = false; p.pinMode = null; }
+    this.setState(p);
+  }
+  lockMount() {
+    var self = this;
+    this.lockInit();
+    this._onLock = function (ev) { if (!ev || ev.key === 'expenseTracker.lock' || ev.key === 'expenseTracker.unlockPing' || ev.key === 'expenseTracker.unlocked') self.lockInit(); };
+    // lock again when the app goes to the background
+    this._onHide = function () {
+      if (document.visibilityState === 'hidden' && (self.state || {}).lockOn) {
+        try { window.sessionStorage.removeItem('expenseTracker.unlocked'); } catch (e) {}
+        self.setState({ locked: true, pinMode: 'unlock', pinEntry: '', pinErr: '' });
+      }
+    };
+    try { window.addEventListener('storage', this._onLock); document.addEventListener('visibilitychange', this._onHide); } catch (e) {}
+  }
+  lockUnmount() { try { window.removeEventListener('storage', this._onLock); document.removeEventListener('visibilitychange', this._onHide); } catch (e) {} }
+  markUnlocked() {
+    try { window.sessionStorage.setItem('expenseTracker.unlocked', '1'); window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now())); } catch (e) {}
+  }
+  pinDone(pin) {
+    var self = this, mode = (this.state || {}).pinMode, lk = this.lockRead();
+    var ok = function () { return lk && lk.h === self.lockHash(pin, lk.s); };
+    if (mode === 'unlock') {
+      if (ok()) { this.markUnlocked(); this.setState({ locked: false, pinMode: null, pinEntry: '', pinErr: '' }); }
+      else this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' });
+    } else if (mode === 'set') {
+      this.setState({ pinMode: 'confirm', pinFirst: pin, pinEntry: '', pinErr: '' });
+    } else if (mode === 'confirm') {
+      if (pin !== (this.state || {}).pinFirst) { this.setState({ pinMode: 'set', pinFirst: '', pinEntry: '', pinErr: 'PINs didn’t match. Start again.' }); return; }
+      var salt = Math.random().toString(36).slice(2, 10);
+      try { window.localStorage.setItem('expenseTracker.lock', JSON.stringify({ on: true, s: salt, h: this.lockHash(pin, salt) })); } catch (e) {}
+      this.markUnlocked();
+      this.setState({ lockOn: true, pinMode: null, pinFirst: '', pinEntry: '', pinErr: '', lockToast: 'App lock is on' });
+    } else if (mode === 'off' || mode === 'change') {
+      if (!ok()) { this.setState({ pinEntry: '', pinErr: 'Wrong PIN. Try again.' }); return; }
+      if (mode === 'change') { this.setState({ pinMode: 'set', pinEntry: '', pinErr: '' }); return; }
+      try { window.localStorage.removeItem('expenseTracker.lock'); } catch (e) {}
+      this.setState({ lockOn: false, pinMode: null, pinEntry: '', pinErr: '', lockToast: 'App lock is off' });
+    }
+  }
+  lockVals(accent, c) {
+    var self = this, mode = (this.state || {}).pinMode, entry = (this.state || {}).pinEntry || '';
+    var titles = { unlock: 'Enter your PIN', set: 'Create a 4-digit PIN', confirm: 'Re-enter your PIN', off: 'Enter PIN to turn off app lock', change: 'Enter your current PIN' };
+    var hints = { unlock: 'Your expense data is locked', set: 'You’ll need it every time you open the app', confirm: 'Type the same PIN again', off: 'App lock will be turned off', change: 'Then choose a new PIN' };
+    var press = function (k) {
+      return function () {
+        var e = (self.state || {}).pinEntry || '';
+        if (k === 'del') { self.setState({ pinEntry: e.slice(0, -1), pinErr: '' }); return; }
+        if (e.length >= 4) return;
+        e += k; self.setState({ pinEntry: e, pinErr: '' });
+        if (e.length === 4) setTimeout(function () { self.pinDone(e); }, 120);
+      };
+    };
+    var keyStyle = 'height: 64px; border-radius: 32px; border: none; background: ' + c.key + '; color: ' + c.text + '; font-family: inherit; font-size: 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center';
+    var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map(function (k) {
+      return { label: k === 'del' ? '⌫' : k, aria: k === 'del' ? 'Delete digit' : (k || 'blank'), press: k ? press(k) : null, hidden: !k,
+        style: k ? (k === 'del' ? keyStyle.replace('background: ' + c.key, 'background: transparent') : keyStyle) : keyStyle + '; visibility: hidden' };
+    });
+    return {
+      show: !!mode && (mode !== 'unlock' || !!(this.state || {}).locked),
+      title: titles[mode] || '', hint: (this.state || {}).pinErr || hints[mode] || '',
+      hintColor: (this.state || {}).pinErr ? c.danger : c.muted,
+      dots: [0, 1, 2, 3].map(function (i) { var f = i < entry.length; return { style: 'width: 14px; height: 14px; border-radius: 7px; border: 2px solid ' + (f ? accent : c.muted) + '; background: ' + (f ? accent : 'transparent') }; }),
+      keys: keys,
+      canCancel: mode !== 'unlock',
+      isUnlock: mode === 'unlock' && !(this.state || {}).forgotOpen,
+      cancel: function () { self.setState({ pinMode: null, pinEntry: '', pinErr: '', pinFirst: '' }); },
+      forgotOpen: !!(this.state || {}).forgotOpen,
+      openForgot: function () { self.setState({ forgotOpen: true }); },
+      closeForgot: function () { self.setState({ forgotOpen: false }); },
+      eraseAll: function () {
+        // the only way past a forgotten PIN: wipe this device's data, then restore a backup from Profile
+        try {
+          var ks = []; for (var i = 0; i < window.localStorage.length; i++) { var k = window.localStorage.key(i); if (k && k.indexOf('expenseTracker.') === 0) ks.push(k); }
+          ks.forEach(function (k) { window.localStorage.removeItem(k); });
+          window.sessionStorage.removeItem('expenseTracker.unlocked');
+          window.localStorage.setItem('expenseTracker.unlockPing', String(Date.now()));
+        } catch (e) {}
+        try { window.location.reload(); } catch (e) {}
+      },
+      bg: c.bg, text: c.text, muted: c.muted, accent: accent, danger: c.danger, surface: c.surface, border: c.border
+    };
+  }
+  componentWillUnmount() {
+    this.lockUnmount();
+    clearInterval(this._clock); try { window.removeEventListener('storage', this._onStorage); } catch (e) {} }
+  renderVals() {
+    var self = this;
+    // device date & time (re-read every 30 seconds so the app follows the phone's clock, time zone and month changes)
+    var NOW = new Date(this.state.now || Date.now());
+    var MSH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var MLONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var nextDue = function (d) { var y = NOW.getFullYear(), m = NOW.getMonth(); if (NOW.getDate() > d) { m++; if (m > 11) { m = 0; y++; } } return d + ' ' + MSH[m]; };
+    var ddmmyy = function (dt) { return ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + '/' + String(dt.getFullYear()).slice(-2); };
+    var accent = this.props.accent ?? '#3B5BDB';
+    var P = this.state.prefs || {};
+    if (P.accent) accent = P.accent;      // accent colour chosen in Profile
+    var CUR = { INR: ['₹', 'en-IN'], USD: ['$', 'en-US'], EUR: ['€', 'en-IE'], GBP: ['£', 'en-GB'], AED: ['AED ', 'en-US'], SGD: ['S$', 'en-SG'] }[P.currency || 'INR'] || ['₹', 'en-IN'];
+    var C = CUR[0];                        // currency symbol chosen in Profile
+    var darkMode = P.theme === 'Dark' || (P.theme === 'System' && !!P.systemDark);
+    var daysLeft = new Date(NOW.getFullYear(), NOW.getMonth() + 1, 0).getDate() - NOW.getDate() + 1;   // today included
+    var fmt = function (n) { return Number(n || 0).toLocaleString(CUR[1], { maximumFractionDigits: 2 }); };
+    var num = function (s) { var n = parseFloat(String(s).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; };
+    var clean = function (s) { var t = String(s).replace(/[^0-9.]/g, ''); var i = t.indexOf('.'); if (i !== -1) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/\./g, '').slice(0, 2); return t; };  // numbers with up to 2 decimals
+    var THRESHOLD = 64, MAX = 100, OPEN = -88;
+    var update = function (key, patch) {
+      self.setState({ items: self.state.items.map(function (it) { return it.key === key ? Object.assign({}, it, patch) : it; }) });
+    };
+    var ask = function (key) { self.setState({ drag: null, openKey: key, confirmKey: key }); };
+    var drag = this.state.drag;
+    var regular = 0;
+    var expenses = this.state.items.map(function (it) {
+      regular += num(it.value);
+      var dx = 0, dragging = false;
+      if (drag && drag.key === it.key) { dx = drag.dx; dragging = true; }
+      else if (self.state.openKey === it.key) { dx = OPEN; }
+      return {
+        id: 'exp-' + it.key,
+        label: it.label,
+        value: it.value,
+        isNew: !!it.isNew,
+        isFixed: !it.isNew,
+        deleteLabel: 'Delete ' + (it.label || 'expense'),
+        change: function (ev) { update(it.key, { value: clean(ev.target.value) }); },
+        rename: function (ev) { update(it.key, { label: ev.target.value }); },
+        askDelete: function () { ask(it.key); },
+        down: function (ev) {
+          if (ev.target && ev.target.tagName === 'INPUT') return;
+          self.setState({ drag: { key: it.key, startX: ev.clientX, dx: 0 } });
+          if (ev.currentTarget && ev.currentTarget.setPointerCapture) { try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) {} }
+        },
+        move: function (ev) {
+          var d = self.state.drag;
+          if (!d || d.key !== it.key) return;
+          self.setState({ drag: { key: d.key, startX: d.startX, dx: Math.max(-MAX, Math.min(0, ev.clientX - d.startX)) } });
+        },
+        up: function () {
+          var d = self.state.drag;
+          if (!d || d.key !== it.key) return;
+          if (d.dx <= -THRESHOLD) ask(it.key);
+          else self.setState({ drag: null });
+        },
+        cancel: function () { self.setState({ drag: null }); },
+        rowStyle: 'position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; background: #FFFFFF; touch-action: pan-y; transform: translateX(' + dx + 'px); transition: ' + (dragging ? 'none' : 'transform 180ms ease')
+      };
+    });
+    var confirmItem = null;
+    this.state.items.forEach(function (it) { if (it.key === self.state.confirmKey) confirmItem = it; });
+    // Save: keeps everything typed on this screen; shows when there are unsaved changes
+    var snap = this.snapshot();
+    var dirty = this.state.savedSnap !== null && snap !== this.state.savedSnap;
+    var cardShare = 27500;      // your share of this month's credit card bills
+    var salary = num(this.state.salary);
+    var balance = salary - regular;   // matches "How it adds up" (card bills are handled in the section below)
+
+    // Credit card bills (entered manually) vs what's owed both ways
+    // one bill box per credit card on the Cards screen (added or deleted cards show up here)
+    var billCards = (this.state.cardsList || []).filter(function (c) { return c.type === 'Credit'; }).map(function (c) {
+      return { key: c.id, name: c.name, last4: c.last4, due: c.due ? nextDue(c.due) : '—' };
+    });
+    var bills = this.state.bills;
+    var billsTotal = 0;
+    var billInputs = billCards.map(function (c) {
+      billsTotal += num(bills[c.key]);
+      return {
+        id: 'bill-' + c.key, name: c.name, last4: c.last4, due: c.due, value: bills[c.key] || '',
+        change: function (ev) {
+          var next = Object.assign({}, self.state.bills);
+          next[c.key] = clean(ev.target.value);   // stored by card
+          self.setState({ bills: next });
+          try { window.localStorage.setItem('expenseTracker.cardBills', JSON.stringify(next)); } catch (e) {}
+        }
+      };
+    });
+    // Worked out from the Shared screen, so every add / edit / delete there shows up here
+    var sh = this.state.shared || {};
+    var owedOthers = 0;       // you owe others: "Owe to" entries + split bills someone else paid
+    (sh.oweItems || []).forEach(function (w) { owedOthers += w.amount; });
+    (sh.groups || []).forEach(function (g) { Object.keys(g.bal || {}).forEach(function (m) { if (g.bal[m] < 0) owedOthers += -g.bal[m]; }); });
+    // people who owe you, one by one (paid for on your cards + split bills)
+    var byPerson = {}, order = [];
+    var addOwe = function (name, why, amt) {
+      if (amt <= 0) return;
+      var k = String(name).trim().split(/\s+/)[0].toLowerCase();
+      if (!byPerson[k]) { byPerson[k] = { name: name, parts: [], amount: 0 }; order.push(k); }
+      if (String(name).length > byPerson[k].name.length) byPerson[k].name = name;
+      byPerson[k].parts.push(why + ' ' + C + '' + fmt(amt));
+      byPerson[k].amount += amt;
+    };
+    (sh.lentItems || []).forEach(function (l) { addOwe(l.who, l.what, l.amount - l.paid); });
+    (sh.groups || []).forEach(function (g) { Object.keys(g.bal || {}).forEach(function (m) { if (g.bal[m] > 0) addOwe(m, g.name, g.bal[m]); }); });
+    var owers = order.map(function (k) { var o = byPerson[k]; return { name: o.name, why: o.parts.join(' · '), amount: o.amount }; });
+    var owedToYou = 0;
+    owers.forEach(function (o) { owedToYou += o.amount; });
+    var savingsAmt = num(this.state.savings);
+    var toPay = billsTotal + owedOthers;
+    var saveMeAmt = num(this.state.saveMe);   // "Save me salary": typed by you, taken off like money owed to you
+    var leftAmt = balance - saveMeAmt;
+    var billBalance = toPay - owedToYou - savingsAmt - saveMeAmt;
+    return {
+      lock: this.lockVals(accent, { bg: '#F4F5F7', text: '#111827', muted: '#5F6672', key: '#FFFFFF', danger: '#B42318', surface: '#FFFFFF', border: '#D5D8DE' }),
+      cur: C,
+      themeFilter: darkMode ? 'invert(0.92) hue-rotate(180deg)' : 'none',
+      billInputs: billInputs,
+      billsTotalF: fmt(billsTotal),
+      owedOthersF: fmt(owedOthers),
+      toPayF: fmt(toPay),
+      owedToYouF: fmt(owedToYou),
+      oweList: owers.map(function (o) { return { name: o.name, why: o.why, amountF: fmt(o.amount) }; }),
+      noOwers: owers.length === 0,
+      noCreditCards: billInputs.length === 0,
+      savingsF: fmt(savingsAmt),
+      saveMe: this.state.saveMe || '',
+      setSaveMe: function (ev) { self.setState({ saveMe: clean(ev.target.value) }); },
+      billBalanceLabel: billBalance > 0 ? 'Balance still to pay' : 'Balance left over',
+      billBalanceF: fmt(Math.abs(billBalance)),
+      billBalanceColor: billBalance > 0 ? '#B42318' : '#1E5E2B',
+      accent: accent,
+      saveText: dirty ? 'Save' : 'Saved',
+      saveNote: dirty ? 'Unsaved changes' : (this.state.savedAt ? 'Saved at ' + this.state.savedAt : 'All changes saved'),
+      saveNoteColor: dirty ? '#8A3A00' : '#5F6672',
+      saveStyle: 'min-height: 52px; padding: 0 16px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; ' + (dirty ? 'border: none; background: ' + accent + '; color: #FFFFFF' : 'border: 1px solid #D5D8DE; background: #FFFFFF; color: #3D434D'),
+      saveAll: function () {
+        var sn = self.snapshot();
+        try {
+          window.localStorage.setItem('expenseTracker.budget', sn);
+          window.localStorage.setItem('expenseTracker.cardBills', JSON.stringify(self.state.bills));
+        } catch (e) {}
+        var d = new Date();
+        var hh = d.getHours(), mm = d.getMinutes();
+        self.setState({ savedSnap: sn, savedAt: (hh % 12 || 12) + ':' + (mm < 10 ? '0' : '') + mm + (hh < 12 ? ' am' : ' pm') });
+      },
+      daysLeft: daysLeft,
+      monthLabel: MLONG[NOW.getMonth()] + ' ' + NOW.getFullYear(),
+      creditDate: ddmmyy(new Date(NOW.getFullYear(), NOW.getMonth(), 1)),
+      salary: this.state.salary,
+      salaryF: fmt(salary),
+      setSalary: function (ev) { self.setState({ salary: clean(ev.target.value) }); },
+      expenses: expenses,
+      addExpense: function () {
+        var id = 'new' + self.state.nextId;
+        self.setState({ items: self.state.items.concat([{ key: id, label: '', value: '', isNew: true }]), nextId: self.state.nextId + 1 });
+      },
+      confirming: !!confirmItem,
+      confirmLabel: confirmItem ? (confirmItem.label || 'this expense') : '',
+      confirmAmount: confirmItem ? fmt(num(confirmItem.value)) : '0',
+      cancelDelete: function () { self.setState({ confirmKey: null, openKey: null }); },
+      confirmDelete: function () {
+        var k = self.state.confirmKey;
+        self.setState({ items: self.state.items.filter(function (it) { return it.key !== k; }), confirmKey: null, openKey: null });
+      },
+      regularTotal: fmt(regular),
+      cardShareF: fmt(cardShare),
+      savings: this.state.savings,
+      setSavings: function (ev) { self.setState({ savings: clean(ev.target.value) }); },
+      balanceSigned: (balance < 0 ? '−' + C + '' : '' + C + '') + fmt(Math.abs(balance)),
+      balanceColor: balance < 0 ? '#B42318' : '#111827',
+      balance: (balance < 0 ? '−' : '') + fmt(Math.abs(balance)),
+      // Amount left for the month = Balance − Save me salary
+      leftSigned: (leftAmt < 0 ? '−' + C + '' : '' + C + '') + fmt(Math.abs(leftAmt)),
+      hasSaveMe: saveMeAmt > 0,
+      saveMeF: fmt(saveMeAmt),
+      perDay: fmt(Math.max(0, leftAmt) / daysLeft)
+    };
+  }
+}
+</script>
+</body>
+</html>
